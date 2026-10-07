@@ -22,7 +22,7 @@
     <!-- Firebase SDK (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, push, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDF0bAwXxlbeKt6CwVttyqvIvXWnKE-ws0",
@@ -43,6 +43,7 @@
         window.dbPush = push;
         window.dbRemove = remove;
         window.dbOnValue = onValue;
+        window.dbUpdate = update;
     </script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
@@ -186,7 +187,7 @@
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition flex items-center justify-center gap-2 mt-2">
-                        <span>🚀</span> Kirim Laporan & Arsipkan Foto
+                        <span>🚀</span> Kirim Laporan
                     </button>
                 </form>
             </section>
@@ -447,7 +448,7 @@
             }).catch(err => console.log('WA notification error', err));
         }
 
-        // Form Submit & Upload Multi Foto ke Drive & Firebase
+        // Form Submit & Upload Multi Foto ke Drive & Firebase (Langsung Tampil + Sync Latar Belakang)
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const institution = document.getElementById('institution').value;
@@ -474,72 +475,120 @@
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Mengunggah Laporan & Foto...";
+            submitBtn.innerText = "Menyimpan Laporan...";
 
             try {
-                const toBase64 = file => new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = () => reject(new Error('Gagal membaca file: ' + file.name));
-                });
+                // Konversi file ke Blob URL agar bisa langsung tampil di UI web
+                let tempFiles = [];
+                let filesToUpload = [];
 
-                let filesArray = [];
+                const processFiles = (fileList, prefix) => {
+                    for (let i = 0; i < fileList.length; i++) {
+                        const file = fileList[i];
+                        const name = `[${prefix}_${i+1}]_${file.name}`;
+                        const tempUrl = URL.createObjectURL(file);
+                        
+                        tempFiles.push({
+                            id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                            name: name,
+                            url: tempUrl,
+                            isTemp: true
+                        });
 
-                for (let i = 0; i < fSentFiles.length; i++) {
-                    filesArray.push({ name: `[KIRIM_${i+1}]_${fSentFiles[i].name}`, mimeType: fSentFiles[i].type, bytes: await toBase64(fSentFiles[i]) });
-                }
-                for (let i = 0; i < fRecvFiles.length; i++) {
-                    filesArray.push({ name: `[TERIMA_${i+1}]_${fRecvFiles[i].name}`, mimeType: fRecvFiles[i].type, bytes: await toBase64(fRecvFiles[i]) });
-                }
-                for (let i = 0; i < fTakeFiles.length; i++) {
-                    filesArray.push({ name: `[AMBIL_${i+1}]_${fTakeFiles[i].name}`, mimeType: fTakeFiles[i].type, bytes: await toBase64(fTakeFiles[i]) });
-                }
+                        filesToUpload.push({
+                            file: file,
+                            name: name
+                        });
+                    }
+                };
 
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'upload',
-                        institution: institution,
-                        dateString: dateString,
-                        files: filesArray
-                    })
-                });
-                const resData = await response.json();
+                processFiles(fSentFiles, 'KIRIM');
+                processFiles(fRecvFiles, 'TERIMA');
+                processFiles(fTakeFiles, 'AMBIL');
 
-                if (resData.status === 'success') {
-                    const reportRef = window.dbRef(window.db, 'reports');
-                    const newReportRef = window.dbPush(reportRef);
-                    
-                    const reportPayload = {
-                        institution: institution,
-                        qtySent: qtySent,
-                        qtyReturned: qtyReturned,
-                        date: dateString,
-                        rawDate: rawDate,
-                        uploader: currentUser.name,
-                        timestamp: Date.now(),
-                        files: resData.files || []
-                    };
+                // 1. Simpan laporan awal ke Firebase (Langsung Muncul di Antarmuka Web)
+                const reportRef = window.dbRef(window.db, 'reports');
+                const newReportRef = window.dbPush(reportRef);
+                const reportKey = newReportRef.key;
 
-                    await window.dbSet(newReportRef, reportPayload);
+                const reportPayload = {
+                    institution: institution,
+                    qtySent: qtySent,
+                    qtyReturned: qtyReturned,
+                    date: dateString,
+                    rawDate: rawDate,
+                    uploader: currentUser.name,
+                    timestamp: Date.now(),
+                    files: tempFiles
+                };
 
-                    const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
-                    sendWhatsAppNotification(waMessage);
+                await window.dbSet(newReportRef, reportPayload);
 
-                    showNotification('Laporan & Dokumentasi berhasil diunggah!');
-                    document.getElementById('distributionForm').reset();
-                    document.getElementById('activityDate').valueAsDate = new Date();
-                    loadHistory();
-                } else {
-                    showNotification('Gagal mengunggah ke Sistem : ' + resData.message, 'error');
-                }
+                showNotification('Laporan langsung tersimpan ke Sistem...', 'info');
+                document.getElementById('distributionForm').reset();
+                document.getElementById('activityDate').valueAsDate = new Date();
+                
+                // Refresh antarmuka web
+                loadHistory();
+
+                // 2. Kirim Notifikasi WA
+                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
+                sendWhatsAppNotification(waMessage);
+
+                // 3. Proses Pengunggahan ke Google Drive di Latar Belakang (Asinkron)
+                (async () => {
+                    try {
+                        const toBase64 = file => new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onload = () => resolve(reader.result.split(',')[1]);
+                            reader.onerror = () => reject(new Error('Gagal membaca file: ' + file.name));
+                        });
+
+                        let payloadFiles = [];
+                        for (let item of filesToUpload) {
+                            payloadFiles.push({
+                                name: item.name,
+                                mimeType: item.file.type,
+                                bytes: await toBase64(item.file)
+                            });
+                        }
+
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'upload',
+                                institution: institution,
+                                dateString: dateString,
+                                files: payloadFiles
+                            })
+                        });
+                        
+                        const resData = await response.json();
+
+                        if (resData.status === 'success') {
+                            // Update data di Firebase dengan URL permanen dari Google Drive
+                            const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
+                            await window.dbUpdate(updatedReportRef, {
+                                files: resData.files || []
+                            });
+                            showNotification('Semua foto selesai disinkronkan & diarsipkan ke Google Drive!');
+                            loadHistory();
+                        } else {
+                            showNotification('Gagal sinkronisasi ke Google Drive: ' + resData.message, 'error');
+                        }
+                    } catch (err) {
+                        console.error('Error background sync:', err);
+                        showNotification('Terjadi kesalahan saat sinkronisasi latar belakang.', 'error');
+                    }
+                })();
+
             } catch (err) {
                 const errorMsg = err instanceof ProgressEvent ? 'Gagal membaca file foto' : (err.message || 'Terjadi kesalahan pada sistem');
                 showNotification(errorMsg, 'error');
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerText = "🚀 Kirim Laporan & Arsipkan Foto";
+                submitBtn.innerText = "🚀 Kirim Laporan";
             }
         });
 
@@ -599,10 +648,13 @@
                     let filesHtml = '<div class="grid grid-cols-3 gap-2 my-2">';
                     if (report.files && report.files.length > 0) {
                         report.files.forEach(f => {
-                            const thumbUrl = "https://lh3.googleusercontent.com/d/" + f.id;
+                            // Cek jika gambar masih menggunakan URL lokal sementara atau sudah berupa file Drive ID
+                            const thumbUrl = f.isTemp ? f.url : ("https://lh3.googleusercontent.com/d/" + f.id);
+                            const modalUrl = f.isTemp ? f.url : f.url;
                             filesHtml += `
-                                <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border cursor-pointer relative group" onclick="openModal('${f.url}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
+                                <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border cursor-pointer relative group" onclick="openModal('${modalUrl}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
                                     <img src="${thumbUrl}" class="w-full h-full object-cover group-hover:scale-105 transition">
+                                    ${f.isTemp ? '<span class="absolute bottom-1 right-1 text-[9px] bg-yellow-500 text-white px-1 rounded animate-pulse">Syncing...</span>' : ''}
                                 </div>
                             `;
                         });
