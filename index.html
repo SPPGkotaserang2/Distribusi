@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
+    <!-- MAIN APP CONTAINER (Hidden until login) -->
     <div id="appContainer" class="hidden flex flex-col min-h-screen">
         <!-- Header -->
         <header class="bg-tealAccent text-white shadow-md py-3 px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
@@ -168,7 +168,7 @@
                         <input type="date" id="activityDate" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
                     </div>
 
-                    <!-- Dokumentasi -->
+                    <!-- Dokumentasi (Opsional / Tidak Wajib Semua) -->
                     <div class="space-y-3 pt-2 border-t">
                         <p class="text-[11px] text-slate-500 italic">Lampiran foto bersifat opsional (dapat memilih lebih dari 1 foto).</p>
                         <div>
@@ -186,7 +186,7 @@
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition flex items-center justify-center gap-2 mt-2">
-                        <span>🚀</span> Kirim Laporan
+                        <span>🚀</span> Kirim Laporan & Arsipkan Foto
                     </button>
                 </form>
             </section>
@@ -205,7 +205,7 @@
                     </div>
                 </div>
 
-                <!-- Filter Panel -->
+                <!-- Filter Panel: Rentang Tanggal & Pilih Instansi -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-600 mb-1">Dari Tanggal</label>
@@ -259,7 +259,9 @@
                 </div>
 
                 <!-- Grid Data -->
-                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1"></div>
+                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1">
+                    <!-- Dinamis dari Firebase & Drive -->
+                </div>
                 <div id="emptyState" class="text-center py-16 text-slate-400 text-sm hidden">Belum ada laporan atau arsip tersimpan.</div>
             </section>
 
@@ -273,7 +275,7 @@
             <img id="modalImg" src="" class="max-h-[60vh] rounded-lg object-contain mb-3 shadow">
             <p id="modalCaption" class="text-xs font-semibold text-slate-700 text-center mb-4"></p>
             <div class="flex gap-3">
-                <button id="modalDownloadBtn" onclick="" class="bg-tealAccent text-white text-xs px-4 py-2 rounded-lg hover:bg-teal-700 transition">Unduh Foto</button>
+                <a id="modalDownload" href="#" target="_blank" class="bg-tealAccent text-white text-xs px-4 py-2 rounded-lg hover:bg-teal-700 transition">Unduh Foto</a>
                 <button id="modalDeleteBtn" onclick="" class="bg-red-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-600 transition">Hapus Foto</button>
             </div>
         </div>
@@ -287,6 +289,7 @@
 
         let currentUser = null;
 
+        // Cek sesi login tersimpan di localStorage (kadaluarsa setelah 1 minggu / 7 hari)
         window.addEventListener('DOMContentLoaded', () => {
             const savedSession = localStorage.getItem('sppg_session');
             const sessionTime = localStorage.getItem('sppg_session_time');
@@ -319,8 +322,10 @@
             loadHistory();
         }
 
+        // Set Default Tanggal Hari Ini
         document.getElementById('activityDate').valueAsDate = new Date();
 
+        // Live Clock
         setInterval(() => {
             const now = new Date();
             const clockEl = document.getElementById('liveClock');
@@ -329,6 +334,7 @@
             }
         }, 1000);
 
+        // Notifikasi Profesional (Pengganti Alert Standar)
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -357,6 +363,7 @@
             }, 3500);
         }
 
+        // Network Speed Indicator Checker
         async function checkNetworkSpeed() {
             const netDot = document.getElementById('netDot');
             const netText = document.getElementById('netText');
@@ -384,11 +391,13 @@
         setInterval(checkNetworkSpeed, 10000);
         checkNetworkSpeed();
 
+        // Toggle Password Visibility
         function togglePassword() {
             const passInput = document.getElementById('loginPass');
             passInput.type = passInput.type === 'password' ? 'text' : 'password';
         }
 
+        // Login Handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.trim();
@@ -424,6 +433,7 @@
             document.getElementById('loginForm').reset();
         }
 
+        // Kirim WhatsApp via Fonnte API
         function sendWhatsAppNotification(message) {
             const formData = new URLSearchParams();
             formData.append('target', FONNTE_TARGET);
@@ -437,7 +447,7 @@
             }).catch(err => console.log('WA notification error', err));
         }
 
-        // Form Submit & Upload Background Sinkronisasi ke Drive & Firebase
+        // Form Submit & Upload Multi Foto ke Drive & Firebase
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const institution = document.getElementById('institution').value;
@@ -464,77 +474,76 @@
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Menyimpan ke Antarmuka...";
+            submitBtn.innerText = "Mengunggah Laporan & Foto...";
 
-            // Berikan respons instan lokal (offline success)
-            showNotification('Unggah Berhasil!.');
-            
-            // Reset form langsung agar user dapat melanjutkan tugas
-            document.getElementById('distributionForm').reset();
-            document.getElementById('activityDate').valueAsDate = new Date();
-            submitBtn.disabled = false;
-            submitBtn.innerText = "🚀 Kirim Laporan & Arsipkan Foto";
+            try {
+                const toBase64 = file => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = () => reject(new Error('Gagal membaca file: ' + file.name));
+                });
 
-            // Proses Background Sinkronisasi ke Google Drive & Firebase
-            setTimeout(async () => {
-                try {
-                    const toBase64 = file => new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.readAsDataURL(file);
-                        reader.onload = () => resolve(reader.result.split(',')[1]);
-                        reader.onerror = error => reject(error);
-                    });
+                let filesArray = [];
 
-                    let filesArray = [];
-
-                    for (let i = 0; i < fSentFiles.length; i++) {
-                        filesArray.push({ name: `[KIRIM_${i+1}]_${fSentFiles[i].name}`, mimeType: fSentFiles[i].type, bytes: await toBase64(fSentFiles[i]) });
-                    }
-                    for (let i = 0; i < fRecvFiles.length; i++) {
-                        filesArray.push({ name: `[TERIMA_${i+1}]_${fRecvFiles[i].name}`, mimeType: fRecvFiles[i].type, bytes: await toBase64(fRecvFiles[i]) });
-                    }
-                    for (let i = 0; i < fTakeFiles.length; i++) {
-                        filesArray.push({ name: `[AMBIL_${i+1}]_${fTakeFiles[i].name}`, mimeType: fTakeFiles[i].type, bytes: await toBase64(fTakeFiles[i]) });
-                    }
-
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: 'upload',
-                            institution: institution,
-                            dateString: dateString,
-                            files: filesArray
-                        })
-                    });
-                    const resData = await response.json();
-
-                    if (resData.status === 'success') {
-                        const reportRef = window.dbRef(window.db, 'reports');
-                        const newReportRef = window.dbPush(reportRef);
-                        
-                        const reportPayload = {
-                            institution: institution,
-                            qtySent: qtySent,
-                            qtyReturned: qtyReturned,
-                            date: dateString,
-                            rawDate: rawDate,
-                            uploader: currentUser.name,
-                            timestamp: Date.now(),
-                            files: resData.files || []
-                        };
-
-                        await window.dbSet(newReportRef, reportPayload);
-
-                        const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil disinkronkan.`;
-                        sendWhatsAppNotification(waMessage);
-                        loadHistory();
-                    }
-                } catch (err) {
-                    console.log('Background sync error:', err);
+                for (let i = 0; i < fSentFiles.length; i++) {
+                    filesArray.push({ name: `[KIRIM_${i+1}]_${fSentFiles[i].name}`, mimeType: fSentFiles[i].type, bytes: await toBase64(fSentFiles[i]) });
                 }
-            }, 100);
+                for (let i = 0; i < fRecvFiles.length; i++) {
+                    filesArray.push({ name: `[TERIMA_${i+1}]_${fRecvFiles[i].name}`, mimeType: fRecvFiles[i].type, bytes: await toBase64(fRecvFiles[i]) });
+                }
+                for (let i = 0; i < fTakeFiles.length; i++) {
+                    filesArray.push({ name: `[AMBIL_${i+1}]_${fTakeFiles[i].name}`, mimeType: fTakeFiles[i].type, bytes: await toBase64(fTakeFiles[i]) });
+                }
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'upload',
+                        institution: institution,
+                        dateString: dateString,
+                        files: filesArray
+                    })
+                });
+                const resData = await response.json();
+
+                if (resData.status === 'success') {
+                    const reportRef = window.dbRef(window.db, 'reports');
+                    const newReportRef = window.dbPush(reportRef);
+                    
+                    const reportPayload = {
+                        institution: institution,
+                        qtySent: qtySent,
+                        qtyReturned: qtyReturned,
+                        date: dateString,
+                        rawDate: rawDate,
+                        uploader: currentUser.name,
+                        timestamp: Date.now(),
+                        files: resData.files || []
+                    };
+
+                    await window.dbSet(newReportRef, reportPayload);
+
+                    const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
+                    sendWhatsAppNotification(waMessage);
+
+                    showNotification('Laporan & Dokumentasi berhasil diunggah!');
+                    document.getElementById('distributionForm').reset();
+                    document.getElementById('activityDate').valueAsDate = new Date();
+                    loadHistory();
+                } else {
+                    showNotification('Gagal mengunggah ke Sistem : ' + resData.message, 'error');
+                }
+            } catch (err) {
+                const errorMsg = err instanceof ProgressEvent ? 'Gagal membaca file foto' : (err.message || 'Terjadi kesalahan pada sistem');
+                showNotification(errorMsg, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "🚀 Kirim Laporan & Arsipkan Foto";
+            }
         });
 
+        // Load History from Firebase & Drive
         function loadHistory() {
             const loader = document.getElementById('loadingIndicator');
             const grid = document.getElementById('galleryGrid');
@@ -642,6 +651,7 @@
             });
         }
 
+        // Fungsi Filter Rentang Tanggal & Instansi
         function applyFilters() {
             if (!window.allReportsCache) return;
             
@@ -673,33 +683,11 @@
         document.getElementById('filterEndDate').addEventListener('change', applyFilters);
         document.getElementById('filterInstitution').addEventListener('change', applyFilters);
 
-        // Modal Preview & Direct Download Otomatis ke Perangkat
+        // Modal Preview Foto
         function openModal(url, name, caption, fileId, firebaseId) {
             document.getElementById('modalImg').src = url;
             document.getElementById('modalCaption').innerText = caption;
-            
-            // Set tombol unduh agar langsung mengunduh file otomatis ke perangkat tanpa membuka link drive
-            const downloadBtn = document.getElementById('modalDownloadBtn');
-            downloadBtn.onclick = async () => {
-                showNotification('Mengunduh foto ke perangkat...', 'info');
-                try {
-                    const response = await fetch(url);
-                    const blob = await response.blob();
-                    const blobUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = name || 'dokumentasi-sppg.jpg';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(blobUrl);
-                    showNotification('Foto berhasil diunduh!');
-                } catch (err) {
-                    // Fallback jika terjadi pembatasan CORS, buka langsung blob atau URL langsung
-                    window.open(url, '_blank');
-                }
-            };
-
+            document.getElementById('modalDownload').href = url;
             document.getElementById('modalDeleteBtn').setAttribute('onclick', `deleteFileItem('${fileId}')`);
             document.getElementById('imageModal').classList.remove('hidden');
         }
