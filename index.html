@@ -326,7 +326,7 @@
 
             const handleCancel = () => {
                 modal.classList.add('hidden');
-                okBtn.removeEventListener('click', handleCancel);
+                okBtn.removeEventListener('click', handleOk);
                 cancelBtn.removeEventListener('click', handleCancel);
             };
 
@@ -503,6 +503,113 @@
                 headers: { "Authorization": FONNTE_TOKEN },
                 body: formData
             }).catch(err => console.log('WA notification error', err));
+        }
+
+        // Fungsi khusus untuk proses kirim ulang laporan yang gagal
+        async function resendReport(reportKey) {
+            if (isSyncing) {
+                showNotification('Tunggu Sebentar, proses lain sedang berjalan', 'error');
+                return;
+            }
+
+            const report = window.allReportsCache.find(r => r.firebaseId === reportKey);
+            if (!report) {
+                showNotification('Data laporan tidak ditemukan.', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            isSyncing = true;
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Sedang Proses..";
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Update status ke 'syncing'
+            const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
+            await window.dbUpdate(updatedReportRef, { syncStatus: 'syncing' });
+            showNotification('Proses pengiriman ulang dimulai...', 'info');
+            loadHistory();
+
+            let isTimedOut = false;
+            const timeoutTimer = setTimeout(async () => {
+                isTimedOut = true;
+                isSyncing = false;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
+
+                await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
+                showNotification('Gagal terkirim ulang (Waktu habis 30s).', 'error');
+                loadHistory();
+            }, 30000);
+
+            try {
+                let payloadFiles = [];
+
+                if (report.files && report.files.length > 0) {
+                    for (let item of report.files) {
+                        if (item.url && item.url.startsWith('blob:')) {
+                            try {
+                                const response = await fetch(item.url);
+                                const blob = await response.blob();
+                                const base64 = await new Promise((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.readAsDataURL(blob);
+                                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                                    reader.onerror = error => reject(error);
+                                });
+                                payloadFiles.push({
+                                    name: item.name,
+                                    mimeType: blob.type || 'image/jpeg',
+                                    bytes: base64
+                                });
+                            } catch (e) {
+                                console.error('Error membaca blob:', e);
+                            }
+                        }
+                    }
+                }
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'upload',
+                        institution: report.institution,
+                        dateString: report.date,
+                        files: payloadFiles
+                    })
+                });
+
+                if (isTimedOut) return;
+                clearTimeout(timeoutTimer);
+
+                const resData = await response.json();
+
+                if (resData.status === 'success') {
+                    await window.dbUpdate(updatedReportRef, {
+                        files: resData.files || [],
+                        syncStatus: 'synced'
+                    });
+                    showNotification('Foto & Arsip berhasil Disimpan 100%!', 'success');
+                } else {
+                    await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
+                    showNotification('Gagal terkirim ulang: ' + resData.message, 'error');
+                }
+            } catch (err) {
+                if (isTimedOut) return;
+                clearTimeout(timeoutTimer);
+                console.error('Error background sync:', err);
+                await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
+                showNotification('Proses gagal/terputus saat kirim ulang.', 'error');
+            } finally {
+                if (!isTimedOut) {
+                    isSyncing = false;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
+                    loadHistory();
+                }
+            }
         }
 
         // Form Submit & Upload Multi Foto ke Drive & Firebase (Langsung Tampil + Sync Latar Belakang)
@@ -750,7 +857,7 @@
                 const card = document.createElement('div');
                 card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow transition relative";
                 
-                // Indikator Sinkronisasi (Ceklis / Syncing / Failed - Wajib Upload Ulang)
+                // Indikator Sinkronisasi (Ceklis / Syncing / Failed - Gagal, Kirim ulang)
                 let syncBadge = '';
                 if (report.syncStatus === 'synced' || (!report.syncStatus && report.files && report.files.length > 0 && !report.files[0].isTemp)) {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold border border-emerald-300" title="Proses Berhasil">
@@ -761,9 +868,9 @@
                         🔄 Sedang Dikirim...
                     </span>`;
                 } else if (report.syncStatus === 'failed') {
-                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold border border-red-300" title="Gagal di proses">
-                        ❌ GAGAL - WAJIB UPLOAD ULANG
-                    </span>`;
+                    syncBadge = `<button type="button" onclick="resendReport('${report.firebaseId}')" class="inline-flex items-center gap-1 text-[10px] bg-red-100 text-red-800 hover:bg-red-200 px-2.5 py-1 rounded-full font-bold border border-red-300 transition cursor-pointer shadow-sm active:scale-95" title="Klik untuk mencoba kirim ulang">
+                        ❌ Gagal, Kirim ulang
+                    </button>`;
                 } else {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">
                         ✓
@@ -920,4 +1027,3 @@
     </script>
 </body>
 </html>
-
