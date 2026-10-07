@@ -78,7 +78,7 @@
                 <button type="submit" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition">Masuk Sistem</button>
             </form>
             <div class="mt-6 text-center text-[11px] text-slate-400 border-t pt-4">
-            
+                SISTEM RESMI SPPG KOTA SERANG SERANG SERANG 2
             </div>
         </div>
     </div>
@@ -168,19 +168,19 @@
                         <input type="date" id="activityDate" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
                     </div>
 
-                    <!-- Dokumentasi (Opsional / Tidak Wajib Semua) - Diperbarui support multiple files -->
+                    <!-- Dokumentasi (Opsional / Tidak Wajib Semua) -->
                     <div class="space-y-3 pt-2 border-t">
-                        <p class="text-[11px] text-slate-500 italic">Lampiran foto bersifat opsional (dapat memilih lebih dari 1 foto per kategori).</p>
+                        <p class="text-[11px] text-slate-500 italic">Lampiran foto bersifat opsional (dapat memilih lebih dari 1 foto).</p>
                         <div>
-                            <label class="block font-medium text-slate-700 text-xs mb-1">1. Dokumentasi Pengiriman (Bisa > 1 Foto)</label>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">1. Dokumentasi Pengiriman (Bisa Banyak Foto)</label>
                             <input type="file" id="photoSent" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                         <div>
-                            <label class="block font-medium text-slate-700 text-xs mb-1">2. Dokumentasi Penerimaan (Bisa > 1 Foto)</label>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">2. Dokumentasi Penerimaan (Bisa Banyak Foto)</label>
                             <input type="file" id="photoReceived" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                         <div>
-                            <label class="block font-medium text-slate-700 text-xs mb-1">3. Dokumentasi Pengambilan (Bisa > 1 Foto)</label>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">3. Dokumentasi Pengambilan (Bisa Banyak Foto)</label>
                             <input type="file" id="photoTaken" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                     </div>
@@ -196,12 +196,12 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b pb-3 gap-2">
                     <div>
                         <h2 id="sectionTitle" class="text-base font-bold text-teal-800 flex items-center gap-2">
-                            <span>📂</span> Arsip Laporan & Foto 
+                            <span>📂</span> Arsip Laporan & Foto Dokumentasi
                         </h2>
                         <p class="text-xs text-slate-500" id="roleSubtitle">Menampilkan seluruh data pengiriman makanan bergizi.</p>
                     </div>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <button onclick="loadHistory()" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium text-slate-700 transition">🔄 Segarkan</button>
+                        <button onclick="loadHistory()" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium text-slate-700 transition">🔄 search </button>
                     </div>
                 </div>
 
@@ -289,6 +289,39 @@
 
         let currentUser = null;
 
+        // Cek sesi login tersimpan di localStorage (kadaluarsa setelah 1 minggu / 7 hari)
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedSession = localStorage.getItem('sppg_session');
+            const sessionTime = localStorage.getItem('sppg_session_time');
+            
+            if (savedSession && sessionTime) {
+                const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+                if (Date.now() - parseInt(sessionTime) < oneWeekMs) {
+                    currentUser = JSON.parse(savedSession);
+                    initAppUI();
+                } else {
+                    localStorage.removeItem('sppg_session');
+                    localStorage.removeItem('sppg_session_time');
+                }
+            }
+        });
+
+        function initAppUI() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('welcomeText').innerText = currentUser.title;
+
+            if (currentUser.name === 'Admin') {
+                document.getElementById('sectionTitle').innerHTML = '<span>📂</span> Arsip Laporan & Foto Dokumentasi';
+                document.getElementById('roleSubtitle').innerText = "Menampilkan seluruh arsip laporan & identitas pengunggah dari tim dengan fitur pencarian foto.";
+            } else {
+                document.getElementById('sectionTitle').innerHTML = '<span>📋</span> Riwayat Laporan Instansi';
+                document.getElementById('roleSubtitle').innerText = `Menampilkan daftar riwayat nama instansi yang sudah Anda unggah.`;
+            }
+
+            loadHistory();
+        }
+
         // Set Default Tanggal Hari Ini
         document.getElementById('activityDate').valueAsDate = new Date();
 
@@ -364,39 +397,6 @@
             passInput.type = passInput.type === 'password' ? 'text' : 'password';
         }
 
-        // Cek Session Login localStorage (Logout otomatis setelah 1 minggu / 7 hari)
-        function checkSavedSession() {
-            const savedSession = localStorage.getItem('sppg_session');
-            const savedTime = localStorage.getItem('sppg_session_time');
-
-            if (savedSession && savedTime) {
-                const now = Date.now();
-                const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 hari dalam milidetik
-                if (now - parseInt(savedTime) < oneWeek) {
-                    currentUser = JSON.parse(savedSession);
-                    initAppUI();
-                } else {
-                    logout(); // Kadaluarsa setelah 1 minggu
-                }
-            }
-        }
-
-        function initAppUI() {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('hidden');
-            document.getElementById('welcomeText').innerText = currentUser.title;
-
-            if (currentUser.name === 'Admin') {
-                document.getElementById('sectionTitle').innerHTML = '<span>📂</span> Arsip Laporan & Foto';
-                document.getElementById('roleSubtitle').innerText = "Menampilkan seluruh arsip laporan & identitas pengunggah dari tim dengan fitur pencarian foto.";
-            } else {
-                document.getElementById('sectionTitle').innerHTML = '<span>📋</span> Riwayat Laporan Instansi';
-                document.getElementById('roleSubtitle').innerText = `Menampilkan daftar riwayat nama instansi yang sudah Anda unggah.`;
-            }
-
-            loadHistory();
-        }
-
         // Login Handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -414,7 +414,7 @@
 
             if (validRole) {
                 currentUser = validRole;
-                // Simpan ke localStorage dengan batasan waktu 1 minggu
+                // Simpan login ke localStorage dengan masa berlaku 1 minggu
                 localStorage.setItem('sppg_session', JSON.stringify(validRole));
                 localStorage.setItem('sppg_session_time', Date.now().toString());
 
@@ -428,15 +428,11 @@
             currentUser = null;
             localStorage.removeItem('sppg_session');
             localStorage.removeItem('sppg_session_time');
+
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('appContainer').classList.add('hidden');
             document.getElementById('loginForm').reset();
         }
-
-        // Jalankan pemeriksaan sesi saat halaman dimuat
-        window.addEventListener('DOMContentLoaded', () => {
-            checkSavedSession();
-        });
 
         // Kirim WhatsApp via Fonnte API
         function sendWhatsAppNotification(message) {
@@ -452,7 +448,7 @@
             }).catch(err => console.log('WA notification error', err));
         }
 
-        // Form Submit & Upload Multi Foto ke Drive & Firebase (Mendukung > 1 foto per kategori)
+        // Form Submit & Upload Multi Foto ke Drive & Firebase
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const institution = document.getElementById('institution').value;
@@ -460,16 +456,16 @@
             const qtyReturned = document.getElementById('qtyReturned').value;
             const rawDate = document.getElementById('activityDate').value;
 
-            const filesSentEl = document.getElementById('photoSent').files;
-            const filesRecvEl = document.getElementById('photoReceived').files;
-            const filesTakeEl = document.getElementById('photoTaken').files;
+            const fSentFiles = document.getElementById('photoSent').files;
+            const fRecvFiles = document.getElementById('photoReceived').files;
+            const fTakeFiles = document.getElementById('photoTaken').files;
 
             if (!institution || !rawDate) {
                 showNotification('Harap isi Nama Sekolah/Posyandu dan Tanggal kegiatan!', 'error');
                 return;
             }
 
-            if (filesSentEl.length === 0 && filesRecvEl.length === 0 && filesTakeEl.length === 0) {
+            if (fSentFiles.length === 0 && fRecvFiles.length === 0 && fTakeFiles.length === 0) {
                 showNotification('Harap unggah minimal satu foto dokumentasi!', 'error');
                 return;
             }
@@ -490,15 +486,16 @@
                 });
 
                 let filesArray = [];
-                
-                for (let i = 0; i < filesSentEl.length; i++) {
-                    filesArray.push({ name: `[KIRIM_${i+1}]_${filesSentEl[i].name}`, mimeType: filesSentEl[i].type, bytes: await toBase64(filesSentEl[i]) });
+
+                // Loop multiple files untuk masing-masing kategori
+                for (let i = 0; i < fSentFiles.length; i++) {
+                    filesArray.push({ name: `[KIRIM_${i+1}]_${fSentFiles[i].name}`, mimeType: fSentFiles[i].type, bytes: await toBase64(fSentFiles[i]) });
                 }
-                for (let i = 0; i < filesRecvEl.length; i++) {
-                    filesArray.push({ name: `[TERIMA_${i+1}]_${filesRecvEl[i].name}`, mimeType: filesRecvEl[i].type, bytes: await toBase64(filesRecvEl[i]) });
+                for (let i = 0; i < fRecvFiles.length; i++) {
+                    filesArray.push({ name: `[TERIMA_${i+1}]_${fRecvFiles[i].name}`, mimeType: fRecvFiles[i].type, bytes: await toBase64(fRecvFiles[i]) });
                 }
-                for (let i = 0; i < filesTakeEl.length; i++) {
-                    filesArray.push({ name: `[AMBIL_${i+1}]_${filesTakeEl[i].name}`, mimeType: filesTakeEl[i].type, bytes: await toBase64(filesTakeEl[i]) });
+                for (let i = 0; i < fTakeFiles.length; i++) {
+                    filesArray.push({ name: `[AMBIL_${i+1}]_${fTakeFiles[i].name}`, mimeType: fTakeFiles[i].type, bytes: await toBase64(fTakeFiles[i]) });
                 }
 
                 // Kirim ke Google Apps Script
@@ -673,12 +670,13 @@
                 let matchDate = true;
 
                 if (startDate || endDate) {
+                    // Jika data lama belum ada rawDate, gunakan pencocokan string atau lewati
                     let rDate = r.rawDate || '';
                     if (rDate) {
                         if (startDate && rDate < startDate) matchDate = false;
                         if (endDate && rDate > endDate) matchDate = false;
                     } else {
-                        matchDate = false;
+                        matchDate = false; // Jika tidak ada rawDate, abaikan agar aman
                     }
                 }
 
@@ -708,7 +706,7 @@
 
         // Hapus File Satuan di Drive & Web
         function deleteFileItem(fileId) {
-            if (confirm('Apakah Anda yakin ingin menghapus foto ini dari Sistem')) {
+            if (confirm('Apakah Anda yakin ingin menghapus foto ini dari Sistem?')) {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'delete', fileId: fileId })
@@ -728,7 +726,7 @@
 
         // Hapus Seluruh Laporan & File di Drive Terkait
         function deleteReport(firebaseId, fileIds) {
-            if (confirm('Hapus seluruh laporan dan file foto terkait dari Sistem')) {
+            if (confirm('Hapus seluruh laporan dan file foto terkait dari Sistem?')) {
                 // Hapus file-file di Google Drive terlebih dahulu
                 fetch(SCRIPT_URL, {
                     method: 'POST',
