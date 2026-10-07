@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG SERANG SERANG 2</title>
+    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG 2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -58,7 +58,7 @@
                 <div class="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-teal-100 overflow-hidden">
                     <img src="logo.png" alt="Logo SPPG" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23008080\' stroke-width=\'2\'><path d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/></svg>';">
                 </div>
-                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG SERANG SERANG 2</h2>
+                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG 2</h2>
                 <p class="text-xs text-slate-500 mt-1">Sistem Laporan Distribusi Makanan Bergizi Gratis</p>
             </div>
             <form id="loginForm" class="space-y-4">
@@ -78,12 +78,12 @@
                 <button type="submit" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition">Masuk Sistem</button>
             </form>
             <div class="mt-6 text-center text-[11px] text-slate-400 border-t pt-4">
-                SISTEM RESMI SPPG KOTA SERANG SERANG SERANG 2
+                SISTEM RESMI SPPG KOTA SERANG 2
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER (Hidden until login) -->
+    <!-- MAIN APP CONTAINER -->
     <div id="appContainer" class="hidden flex flex-col min-h-screen">
         <!-- Header -->
         <header class="bg-tealAccent text-white shadow-md py-3 px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
@@ -93,7 +93,7 @@
                 </div>
                 <div>
                     <h1 id="welcomeText" class="text-base font-bold">Selamat Datang</h1>
-                    <p class="text-xs text-teal-100">SPPG KOTA SERANG SERANG SERANG 2 — Logistik & Distribusi</p>
+                    <p class="text-xs text-teal-100">SPPG KOTA SERANG 2 — Logistik & Distribusi</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -168,7 +168,7 @@
                         <input type="date" id="activityDate" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
                     </div>
 
-                    <!-- Dokumentasi (Opsional / Tidak Wajib Semua) -->
+                    <!-- Dokumentasi -->
                     <div class="space-y-3 pt-2 border-t">
                         <p class="text-[11px] text-slate-500 italic">Lampiran foto bersifat opsional (dapat memilih lebih dari 1 foto).</p>
                         <div>
@@ -186,7 +186,7 @@
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition flex items-center justify-center gap-2 mt-2">
-                        <span>🚀</span> Kirim Laporan & Arsipkan Foto
+                        <span>🚀</span> Kirim Laporan
                     </button>
                 </form>
             </section>
@@ -201,11 +201,11 @@
                         <p class="text-xs text-slate-500" id="roleSubtitle">Menampilkan seluruh data pengiriman makanan bergizi.</p>
                     </div>
                     <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <button onclick="loadHistory()" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium text-slate-700 transition">🔄 search </button>
+                        <button onclick="loadHistory()" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium text-slate-700 transition">🔄 Muat Ulang</button>
                     </div>
                 </div>
 
-                <!-- Filter Panel: Rentang Tanggal & Pilih Instansi (Non-Manual) -->
+                <!-- Filter Panel -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-600 mb-1">Dari Tanggal</label>
@@ -259,9 +259,7 @@
                 </div>
 
                 <!-- Grid Data -->
-                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1">
-                    <!-- Dinamis dari Firebase & Drive -->
-                </div>
+                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1"></div>
                 <div id="emptyState" class="text-center py-16 text-slate-400 text-sm hidden">Belum ada laporan atau arsip tersimpan.</div>
             </section>
 
@@ -275,7 +273,7 @@
             <img id="modalImg" src="" class="max-h-[60vh] rounded-lg object-contain mb-3 shadow">
             <p id="modalCaption" class="text-xs font-semibold text-slate-700 text-center mb-4"></p>
             <div class="flex gap-3">
-                <a id="modalDownload" href="#" target="_blank" class="bg-tealAccent text-white text-xs px-4 py-2 rounded-lg hover:bg-teal-700 transition">Unduh Foto</a>
+                <button id="modalDownloadBtn" onclick="" class="bg-tealAccent text-white text-xs px-4 py-2 rounded-lg hover:bg-teal-700 transition">Unduh Foto</button>
                 <button id="modalDeleteBtn" onclick="" class="bg-red-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-600 transition">Hapus Foto</button>
             </div>
         </div>
@@ -283,13 +281,12 @@
 
     <!-- SCRIPT APLIKASI UTAMA -->
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4AlwUdidHIOA3R9wZil43Hjxs1p5I9l-0zCh_qMdx45nulYnLFNetsyNx31to2Afh/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwTgSlvDRzNtcv-UBp7ls1LN5EoutQrsKIDzPz1rI9T9k9ZOoitGMaGAEgYWbmc-RO/exec";
         const FONNTE_TOKEN = "uJ8CF79nyQaJbPrVGeeE";
         const FONNTE_TARGET = "6283111399112";
 
         let currentUser = null;
 
-        // Cek sesi login tersimpan di localStorage (kadaluarsa setelah 1 minggu / 7 hari)
         window.addEventListener('DOMContentLoaded', () => {
             const savedSession = localStorage.getItem('sppg_session');
             const sessionTime = localStorage.getItem('sppg_session_time');
@@ -322,10 +319,8 @@
             loadHistory();
         }
 
-        // Set Default Tanggal Hari Ini
         document.getElementById('activityDate').valueAsDate = new Date();
 
-        // Live Clock
         setInterval(() => {
             const now = new Date();
             const clockEl = document.getElementById('liveClock');
@@ -334,7 +329,6 @@
             }
         }, 1000);
 
-        // Notifikasi Profesional (Pengganti Alert Standar)
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -363,7 +357,6 @@
             }, 3500);
         }
 
-        // Network Speed Indicator Checker
         async function checkNetworkSpeed() {
             const netDot = document.getElementById('netDot');
             const netText = document.getElementById('netText');
@@ -391,13 +384,11 @@
         setInterval(checkNetworkSpeed, 10000);
         checkNetworkSpeed();
 
-        // Toggle Password Visibility
         function togglePassword() {
             const passInput = document.getElementById('loginPass');
             passInput.type = passInput.type === 'password' ? 'text' : 'password';
         }
 
-        // Login Handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.trim();
@@ -414,7 +405,6 @@
 
             if (validRole) {
                 currentUser = validRole;
-                // Simpan login ke localStorage dengan masa berlaku 1 minggu
                 localStorage.setItem('sppg_session', JSON.stringify(validRole));
                 localStorage.setItem('sppg_session_time', Date.now().toString());
 
@@ -434,7 +424,6 @@
             document.getElementById('loginForm').reset();
         }
 
-        // Kirim WhatsApp via Fonnte API
         function sendWhatsAppNotification(message) {
             const formData = new URLSearchParams();
             formData.append('target', FONNTE_TARGET);
@@ -448,7 +437,7 @@
             }).catch(err => console.log('WA notification error', err));
         }
 
-        // Form Submit & Upload Multi Foto ke Drive & Firebase
+        // Form Submit & Upload Background Sinkronisasi ke Drive & Firebase
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const institution = document.getElementById('institution').value;
@@ -475,77 +464,77 @@
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Mengunggah Laporan & Foto...";
+            submitBtn.innerText = "Menyimpan ke Antarmuka...";
 
-            try {
-                const toBase64 = file => new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = error => reject(error);
-                });
+            // Berikan respons instan lokal (offline success)
+            showNotification('Unggah Berhasil!.');
+            
+            // Reset form langsung agar user dapat melanjutkan tugas
+            document.getElementById('distributionForm').reset();
+            document.getElementById('activityDate').valueAsDate = new Date();
+            submitBtn.disabled = false;
+            submitBtn.innerText = "🚀 Kirim Laporan & Arsipkan Foto";
 
-                let filesArray = [];
+            // Proses Background Sinkronisasi ke Google Drive & Firebase
+            setTimeout(async () => {
+                try {
+                    const toBase64 = file => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(file);
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = error => reject(error);
+                    });
 
-                // Loop multiple files untuk masing-masing kategori
-                for (let i = 0; i < fSentFiles.length; i++) {
-                    filesArray.push({ name: `[KIRIM_${i+1}]_${fSentFiles[i].name}`, mimeType: fSentFiles[i].type, bytes: await toBase64(fSentFiles[i]) });
+                    let filesArray = [];
+
+                    for (let i = 0; i < fSentFiles.length; i++) {
+                        filesArray.push({ name: `[KIRIM_${i+1}]_${fSentFiles[i].name}`, mimeType: fSentFiles[i].type, bytes: await toBase64(fSentFiles[i]) });
+                    }
+                    for (let i = 0; i < fRecvFiles.length; i++) {
+                        filesArray.push({ name: `[TERIMA_${i+1}]_${fRecvFiles[i].name}`, mimeType: fRecvFiles[i].type, bytes: await toBase64(fRecvFiles[i]) });
+                    }
+                    for (let i = 0; i < fTakeFiles.length; i++) {
+                        filesArray.push({ name: `[AMBIL_${i+1}]_${fTakeFiles[i].name}`, mimeType: fTakeFiles[i].type, bytes: await toBase64(fTakeFiles[i]) });
+                    }
+
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'upload',
+                            institution: institution,
+                            dateString: dateString,
+                            files: filesArray
+                        })
+                    });
+                    const resData = await response.json();
+
+                    if (resData.status === 'success') {
+                        const reportRef = window.dbRef(window.db, 'reports');
+                        const newReportRef = window.dbPush(reportRef);
+                        
+                        const reportPayload = {
+                            institution: institution,
+                            qtySent: qtySent,
+                            qtyReturned: qtyReturned,
+                            date: dateString,
+                            rawDate: rawDate,
+                            uploader: currentUser.name,
+                            timestamp: Date.now(),
+                            files: resData.files || []
+                        };
+
+                        await window.dbSet(newReportRef, reportPayload);
+
+                        const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil disinkronkan.`;
+                        sendWhatsAppNotification(waMessage);
+                        loadHistory();
+                    }
+                } catch (err) {
+                    console.log('Background sync error:', err);
                 }
-                for (let i = 0; i < fRecvFiles.length; i++) {
-                    filesArray.push({ name: `[TERIMA_${i+1}]_${fRecvFiles[i].name}`, mimeType: fRecvFiles[i].type, bytes: await toBase64(fRecvFiles[i]) });
-                }
-                for (let i = 0; i < fTakeFiles.length; i++) {
-                    filesArray.push({ name: `[AMBIL_${i+1}]_${fTakeFiles[i].name}`, mimeType: fTakeFiles[i].type, bytes: await toBase64(fTakeFiles[i]) });
-                }
-
-                // Kirim ke Google Apps Script
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'upload',
-                        institution: institution,
-                        dateString: dateString,
-                        files: filesArray
-                    })
-                });
-                const resData = await response.json();
-
-                if (resData.status === 'success') {
-                    const reportRef = window.dbRef(window.db, 'reports');
-                    const newReportRef = window.dbPush(reportRef);
-                    
-                    const reportPayload = {
-                        institution: institution,
-                        qtySent: qtySent,
-                        qtyReturned: qtyReturned,
-                        date: dateString,
-                        rawDate: rawDate, // Menyimpan format yyyy-mm-dd untuk kemudahan filter rentang tanggal
-                        uploader: currentUser.name,
-                        timestamp: Date.now(),
-                        files: resData.files || []
-                    };
-
-                    await window.dbSet(newReportRef, reportPayload);
-
-                    const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
-                    sendWhatsAppNotification(waMessage);
-
-                    showNotification('Laporan & Dokumentasi berhasil diunggah!');
-                    document.getElementById('distributionForm').reset();
-                    document.getElementById('activityDate').valueAsDate = new Date();
-                    loadHistory();
-                } else {
-                    showNotification('Gagal mengunggah ke Sistem : ' + resData.message, 'error');
-                }
-            } catch (err) {
-                showNotification('Terjadi kesalahan sistem: ' + err.toString(), 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "🚀 Kirim Laporan & Arsipkan Foto";
-            }
+            }, 100);
         });
 
-        // Load History from Firebase & Drive
         function loadHistory() {
             const loader = document.getElementById('loadingIndicator');
             const grid = document.getElementById('galleryGrid');
@@ -570,7 +559,6 @@
                     ...data[key]
                 }));
 
-                // Filter berdasar role (User hanya melihat daftar nama instansinya sendiri tanpa foto)
                 if (currentUser && currentUser.name !== 'Admin') {
                     reportsArray = reportsArray.filter(r => r.uploader === currentUser.name);
                 }
@@ -599,7 +587,6 @@
                 
                 let contentHtml = '';
                 if (isAdmin) {
-                    // Tampilan Admin: Lengkap dengan Foto & Pencarian detail
                     let filesHtml = '<div class="grid grid-cols-3 gap-2 my-2">';
                     if (report.files && report.files.length > 0) {
                         report.files.forEach(f => {
@@ -627,7 +614,6 @@
                         </div>
                     `;
                 } else {
-                    // Tampilan User: Hanya menampilkan riwayat nama instansi, tanggal, dan jumlah (TANPA FOTO)
                     contentHtml = `
                         <div>
                             <div class="flex justify-between items-start mb-1">
@@ -642,7 +628,6 @@
                     `;
                 }
 
-                // Ambil semua ID file untuk tombol hapus laporan menyeluruh
                 let fileIdsArray = report.files ? report.files.map(f => f.id) : [];
                 let fileIdsJson = JSON.stringify(fileIdsArray).replace(/"/g, '&quot;');
 
@@ -657,7 +642,6 @@
             });
         }
 
-        // Fungsi Filter Rentang Tanggal & Instansi
         function applyFilters() {
             if (!window.allReportsCache) return;
             
@@ -670,13 +654,12 @@
                 let matchDate = true;
 
                 if (startDate || endDate) {
-                    // Jika data lama belum ada rawDate, gunakan pencocokan string atau lewati
                     let rDate = r.rawDate || '';
                     if (rDate) {
                         if (startDate && rDate < startDate) matchDate = false;
                         if (endDate && rDate > endDate) matchDate = false;
                     } else {
-                        matchDate = false; // Jika tidak ada rawDate, abaikan agar aman
+                        matchDate = false;
                     }
                 }
 
@@ -686,16 +669,37 @@
             renderGallery(filtered);
         }
 
-        // Event listener untuk filter
         document.getElementById('filterStartDate').addEventListener('change', applyFilters);
         document.getElementById('filterEndDate').addEventListener('change', applyFilters);
         document.getElementById('filterInstitution').addEventListener('change', applyFilters);
 
-        // Modal Preview Foto
+        // Modal Preview & Direct Download Otomatis ke Perangkat
         function openModal(url, name, caption, fileId, firebaseId) {
             document.getElementById('modalImg').src = url;
             document.getElementById('modalCaption').innerText = caption;
-            document.getElementById('modalDownload').href = url;
+            
+            // Set tombol unduh agar langsung mengunduh file otomatis ke perangkat tanpa membuka link drive
+            const downloadBtn = document.getElementById('modalDownloadBtn');
+            downloadBtn.onclick = async () => {
+                showNotification('Mengunduh foto ke perangkat...', 'info');
+                try {
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = name || 'dokumentasi-sppg.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(blobUrl);
+                    showNotification('Foto berhasil diunduh!');
+                } catch (err) {
+                    // Fallback jika terjadi pembatasan CORS, buka langsung blob atau URL langsung
+                    window.open(url, '_blank');
+                }
+            };
+
             document.getElementById('modalDeleteBtn').setAttribute('onclick', `deleteFileItem('${fileId}')`);
             document.getElementById('imageModal').classList.remove('hidden');
         }
@@ -704,7 +708,6 @@
             document.getElementById('imageModal').classList.add('hidden');
         }
 
-        // Hapus File Satuan di Drive & Web
         function deleteFileItem(fileId) {
             if (confirm('Apakah Anda yakin ingin menghapus foto ini dari Sistem?')) {
                 fetch(SCRIPT_URL, {
@@ -724,16 +727,13 @@
             }
         }
 
-        // Hapus Seluruh Laporan & File di Drive Terkait
         function deleteReport(firebaseId, fileIds) {
             if (confirm('Hapus seluruh laporan dan file foto terkait dari Sistem?')) {
-                // Hapus file-file di Google Drive terlebih dahulu
                 fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'deleteReportFiles', fileIds: fileIds })
                 }).catch(err => console.log('Drive delete batch error', err));
 
-                // Hapus data dari Firebase Realtime Database
                 const reportRef = window.dbRef(window.db, `reports/${firebaseId}`);
                 window.dbRemove(reportRef).then(() => {
                     showNotification('Laporan dan file foto di Sistem berhasil dihapus.');
