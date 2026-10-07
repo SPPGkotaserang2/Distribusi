@@ -160,7 +160,6 @@
                                 <option value="POSYANDU PALM PUTRI">POSYANDU PALM PUTRI</option>
                                 <option value="POSYANDU BOUGENVILLE">POSYANDU BOUGENVILLE</option>
                                 <option value="POSYANDU ANGGREK">POSYANDU ANGGREK</option>
-                                <option value="POSYANDU MELATI">POSYANDU MELATI</option>
                                 <option value="POSYANDU TANJUNG 1">POSYANDU TANJUNG 1</option>
                                 <option value="POSYANDU TANJUNG 2">POSYANDU TANJUNG 2</option>
                                 <option value="POSYANDU SAYANG IBU">POSYANDU SAYANG IBU</option>
@@ -306,6 +305,7 @@
         const FONNTE_TARGET = "6283111399112";
 
         let currentUser = null;
+        let isSyncing = false; // Status global proses sinkronisasi
 
         // Helper Modal Konfirmasi Kustom
         function showConfirm(message, onConfirm) {
@@ -326,7 +326,7 @@
 
             const handleCancel = () => {
                 modal.classList.add('hidden');
-                okBtn.removeEventListener('click', handleOk);
+                okBtn.removeEventListener('click', handleCancel);
                 cancelBtn.removeEventListener('click', handleCancel);
             };
 
@@ -395,7 +395,7 @@
             } else if (type === 'info') {
                 bgClass = 'bg-teal-700 border-teal-500';
                 icon = '🔄';
-                title = 'SINKRONISASI';
+                title = 'BERHASIL!';
             }
 
             toast.className = `pointer-events-auto flex items-center gap-4 p-4 rounded-2xl text-white shadow-2xl border-2 transition-all duration-500 transform -translate-y-10 opacity-0 scale-95 ${bgClass}`;
@@ -508,6 +508,13 @@
         // Form Submit & Upload Multi Foto ke Drive & Firebase (Langsung Tampil + Sync Latar Belakang)
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            // CEK ATURAN 1: Pengguna belum bisa upload jika sinkronisasi sebelumnya belum berhasil
+            if (isSyncing) {
+                showNotification('Tunggu Sebentar', 'error');
+                return;
+            }
+
             const institution = document.getElementById('institution').value;
             const qtySent = document.getElementById('qtySent').value;
             const qtyReturned = document.getElementById('qtyReturned').value;
@@ -531,8 +538,12 @@
             const dateString = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
             const submitBtn = document.getElementById('submitBtn');
+            
+            // Set state sinkronisasi aktif dan kunci tombol submit
+            isSyncing = true;
             submitBtn.disabled = true;
-            submitBtn.innerText = "Menyimpan Laporan...";
+            submitBtn.innerText = "Sedang Proses..";
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
             try {
                 // Konversi file ke Blob URL agar bisa langsung tampil di UI web
@@ -582,7 +593,7 @@
 
                 await window.dbSet(newReportRef, reportPayload);
 
-                showNotification('Laporan & foto berhasil di kirim!...', 'success');
+                showNotification('Laporan & foto sedang dikirim!', 'info');
                 document.getElementById('distributionForm').reset();
                 document.getElementById('activityDate').valueAsDate = new Date();
                 
@@ -593,8 +604,26 @@
                 const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
                 sendWhatsAppNotification(waMessage);
 
-                // 3. Proses Pengunggahan ke Google Drive di Latar Belakang (Asinkron)
+                // 3. Proses Pengunggahan ke Google Drive dengan Timeout 30 Detik
                 (async () => {
+                    let isTimedOut = false;
+
+                    // ATURAN 2: Batas waktu 30 detik (Timeout)
+                    const timeoutTimer = setTimeout(async () => {
+                        isTimedOut = true;
+                        isSyncing = false; // Buka proteksi upload
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
+
+                        // Update status Firebase ke 'failed' (Gagal - Wajib Upload Ulang)
+                        const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
+                        await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
+
+                        showNotification('Gagal terkirim (Waktu habis 30s). Wajib upload ulang!', 'error');
+                        loadHistory();
+                    }, 30000);
+
                     try {
                         const toBase64 = file => new Promise((resolve, reject) => {
                             const reader = new FileReader();
@@ -621,35 +650,52 @@
                                 files: payloadFiles
                             })
                         });
-                        
+
+                        if (isTimedOut) return; // Jika sudah timeout, batalkan penanganan respons
+
+                        clearTimeout(timeoutTimer); // Hentikan timer jika respons kurang dari 30s
                         const resData = await response.json();
 
                         if (resData.status === 'success') {
-                            // Update data di Firebase dengan URL permanen dari Google Drive dan Tanda Ceklis
+                            // Update data di Firebase dengan URL permanen dari Google Drive
                             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                             await window.dbUpdate(updatedReportRef, {
                                 files: resData.files || [],
                                 syncStatus: 'synced' // Status berhasil sinkron
                             });
-                            showNotification('Foto & Arsip berhasil Dismpan 100%!', 'success');
-                            loadHistory();
+                            showNotification('Foto & Arsip berhasil Disimpan 100%!', 'success');
                         } else {
                             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                             await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                            showNotification('Gagal sinkronisasi ke Google Drive: ' + resData.message, 'error');
+                            showNotification('Gagal terkirim: ' + resData.message + '. Wajib upload ulang!', 'error');
                         }
                     } catch (err) {
+                        if (isTimedOut) return;
+                        clearTimeout(timeoutTimer);
                         console.error('Error background sync:', err);
-                        showNotification('Terjadi kesalahan saat sinkronisasi latar belakang.', 'error');
+                        
+                        const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
+                        await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
+                        showNotification('proses gagal/terputus. Wajib upload ulang!', 'error');
+                    } finally {
+                        if (!isTimedOut) {
+                            isSyncing = false; // Reset status sinkronisasi
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
+                            loadHistory();
+                        }
                     }
                 })();
 
             } catch (err) {
+                isSyncing = false;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
+
                 const errorMsg = err instanceof ProgressEvent ? 'Gagal membaca file foto' : (err.message || 'Terjadi kesalahan pada sistem');
                 showNotification(errorMsg, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "🚀 Kirim Laporan";
             }
         });
 
@@ -704,15 +750,19 @@
                 const card = document.createElement('div');
                 card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow transition relative";
                 
-                // Indikator Sinkronisasi (Ceklis / Syncing)
+                // Indikator Sinkronisasi (Ceklis / Syncing / Failed - Wajib Upload Ulang)
                 let syncBadge = '';
                 if (report.syncStatus === 'synced' || (!report.syncStatus && report.files && report.files.length > 0 && !report.files[0].isTemp)) {
-                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold border border-emerald-300" title="Sinkronisasi Berhasil">
+                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold border border-emerald-300" title="Proses Berhasil">
                         ✓ Berhasil Terkirim
                     </span>`;
-                } else if (report.syncStatus === 'syncing' || (report.files && report.files.some(f => f.isTemp))) {
-                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse" title="Proses Mengunggah/Sinkron">
+                } else if (report.syncStatus === 'syncing' || (report.files && report.files.some(f => f.isTemp) && report.syncStatus !== 'failed')) {
+                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse" title="Proses Mengunggah">
                         🔄 Sedang Dikirim...
+                    </span>`;
+                } else if (report.syncStatus === 'failed') {
+                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded-full font-bold border border-red-300" title="Gagal di proses">
+                        ❌ GAGAL - WAJIB UPLOAD ULANG
                     </span>`;
                 } else {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">
@@ -731,7 +781,7 @@
                         filesHtml += `
                             <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border border-slate-300 cursor-pointer relative group" onclick="openModal('${modalUrl}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
                                 <img src="${thumbUrl}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23888\' stroke-width=\'2\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5-11 11\'/></svg>';">
-                                ${f.isTemp ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Sync</span>' : ''}
+                                ${f.isTemp && report.syncStatus !== 'failed' ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Sync</span>' : ''}
                             </div>
                         `;
                     });
