@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Unggah Foto Posyandu & Sekolah</title>
+    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG SERANG SERANG 2</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -11,13 +12,14 @@
                 extend: {
                     colors: {
                         tealAccent: '#008080',
-                        tealLight: '#e6fffa',
-                        duckEgg: '#A2E8DD'
+                        duckEgg: '#A2E8DD',
+                        darkTeal: '#004d4d'
                     }
                 }
             }
         }
     </script>
+    <!-- Firebase SDK (Modular v10) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -25,6 +27,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyDF0bAwXxlbeKt6CwVttyqvIvXWnKE-ws0",
             authDomain: "ditribusi-e7002.firebaseapp.com",
+            databaseURL: "https://ditribusi-e7002-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "ditribusi-e7002",
             storageBucket: "ditribusi-e7002.firebasestorage.app",
             messagingSenderId: "99147104736",
@@ -34,556 +37,668 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window.firebaseDb = { db, ref, set, push, remove, onValue };
+        window.db = db;
+        window.dbRef = ref;
+        window.dbSet = set;
+        window.dbPush = push;
+        window.dbRemove = remove;
+        window.dbOnValue = onValue;
     </script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <div id="profModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center transform scale-95 transition-transform duration-300" id="profModalBox">
-            <div id="profModalIcon" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl">
-                </div>
-            <h3 id="profModalTitle" class="text-lg font-bold text-slate-800 mb-2">Notifikasi</h3>
-            <p id="profModalMessage" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
-            <div id="profModalAction" class="flex gap-2 justify-center">
-                <button onclick="closeProfModal()" class="w-full bg-tealAccent hover:bg-teal-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl shadow-md transition">OK</button>
-            </div>
-        </div>
-    </div>
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <div id="loginPage" class="fixed inset-0 bg-slate-900/90 z-40 flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-slate-100">
+    <!-- LOGIN SECTION -->
+    <div id="loginSection" class="fixed inset-0 bg-teal-900/90 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-4 border-tealAccent">
             <div class="text-center mb-6">
-                <!-- Logo PNG Pengganti Icon Gembok -->
-                <div class="w-16 h-16 bg-teal-50 rounded-2xl mx-auto flex items-center justify-center shadow-inner mb-3 p-1.5 overflow-hidden border border-teal-100">
-                    <img src="logo.png" alt="Logo SPPG" class="w-full h-full object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23008080\'><path d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/></svg>'">
+                <!-- Logo lokal logo.png -->
+                <div class="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-teal-100 overflow-hidden">
+                    <img src="logo.png" alt="Logo SPPG" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23008080\' stroke-width=\'2\'><path d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/></svg>';">
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">DOKUMENTASI DISTRIBUSI</h2>
-                <p class="text-xs text-slate-500 mt-1">SPPG KOTA SERANG SERANG SERANG 2</p>
+                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG SERANG SERANG 2</h2>
+                <p class="text-xs text-slate-500 mt-1">Sistem Laporan Distribusi Makanan Bergizi Gratis</p>
             </div>
             <form id="loginForm" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Username</label>
-                    <input type="text" id="loginUsername" required placeholder="Masukkan username..." class="w-full text-sm border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Username</label>
+                    <input type="text" id="loginUser" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-tealAccent focus:outline-none" placeholder="Masukkan username...">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
                     <div class="relative">
-                        <input type="password" id="loginPassword" required placeholder="Masukkan password..." class="w-full text-sm border border-slate-300 rounded-xl p-3 pr-10 focus:ring-2 focus:ring-teal-500 focus:outline-none transition">
-                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none">
-                            <span id="eyeIcon">👁️</span>
+                        <input type="password" id="loginPass" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-tealAccent focus:outline-none pr-10" placeholder="Masukkan password...">
+                        <button type="button" onclick="togglePassword()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-sm focus:outline-none">
+                            👁️
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-tealAccent hover:bg-teal-700 text-white font-semibold py-3 rounded-xl shadow-lg shadow-teal-500/20 transition duration-200 mt-2">Masuk ke Sistem</button>
+                <button type="submit" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition">Masuk Sistem</button>
             </form>
+            <div class="mt-6 text-center text-[11px] text-slate-400 border-t pt-4">
             
             </div>
         </div>
     </div>
 
-    <header class="bg-tealAccent text-white shadow-md py-4 px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center gap-3">
-            <img src="logo.png" alt="Logo SPPG" class="w-12 h-12 object-contain bg-white rounded-full p-1 shadow" onerror="this.style.display='none'">
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">Sistem Unggah Dokumentasi Distribusi</h1>
-                <p class="text-xs text-teal-100" id="headerSubtitle">SPPG KOTA SERANG SERANG SERANG 2</p>
+    <!-- MAIN APP CONTAINER (Hidden until login) -->
+    <div id="appContainer" class="hidden flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-tealAccent text-white shadow-md py-3 px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center overflow-hidden border border-white/20">
+                    <img src="logo.png" alt="Logo" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                </div>
+                <div>
+                    <h1 id="welcomeText" class="text-base font-bold">Selamat Datang</h1>
+                    <p class="text-xs text-teal-100">SPPG KOTA SERANG SERANG SERANG 2 — Logistik & Distribusi</p>
+                </div>
             </div>
-        </div>
-        <div class="flex items-center gap-3">
-            <div id="liveClock" class="text-sm font-semibold bg-teal-800/50 px-3 py-1.5 rounded-full border border-teal-600"></div>
-            <button onclick="logoutSession()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow transition">Logout</button>
-        </div>
-    </header>
-
-    <main id="mainContainer" class="flex-grow container mx-auto p-4 md:p-6 max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <section id="uploadSection" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 md:col-span-1 h-fit">
-            <h2 class="text-lg font-bold text-teal-800 mb-4 border-b pb-2 flex items-center justify-between">
-                <span class="flex items-center gap-2"><span>📤</span> Unggah Foto Distribusi</span>
-                <span id="userBadge" class="text-xs bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full font-semibold border border-teal-200"></span>
-            </h2>
-            <form id="uploadForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Kategori / Instansi</label>
-                    <select id="institution" required class="w-full text-sm border-slate-300 rounded-lg p-2.5 border focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option value="">-- Pilih Posyandu / Sekolah --</option>
-                        <optgroup label="Posyandu">
-                            <option value="Posyandu Anggrek">1. Posyandu Anggrek</option>
-                            <option value="Posyandu Melati">2. Posyandu Melati</option>
-                            <option value="Posyandu Tanjung 1">3. Posyandu Tanjung 1</option>
-                            <option value="Posyandu Tanjung 2">4. Posyandu Tanjung 2</option>
-                            <option value="Posyandu Sayang Ibu">5. Posyandu Sayang Ibu</option>
-                            <option value="Posyandu Palm Putri">6. Posyandu Palm Putri</option>
-                            <option value="Posyandu Bougenville">7. Posyandu Bougenville</option>
-                        </optgroup>
-                        <optgroup label="Sekolah">
-                            <option value="TK Al Musyawarah">1. TK Al Musyawarah</option>
-                            <option value="TK Islam Modern Asaida">2. TK Islam Modern Asaida</option>
-                            <option value="TK Khalifah">3. TK Khalifah</option>
-                            <option value="SDN Sepang">4. SDN Sepang</option>
-                            <option value="SMP Bait Et Tauhid">5. SMP Bait Et Tauhid</option>
-                            <option value="SMA Bait Et Tauhid">6. SMA Bait Et Tauhid</option>
-                            <option value="TK UPI">7. TK UPI</option>
-                            <option value="SD UPI">8. SD UPI</option>
-                            <option value="SD Al Munawaroh">9. SD Al Munawaroh</option>
-                            <option value="SMP Al Munawaroh">10. SMP Al Munawaroh</option>
-                            <option value="SMK PGRI 3 Kota Serang">11. SMK PGRI 3 Kota Serang</option>
-                            <option value="SMK Intan Husada">12. SMK Intan Husada</option>
-                        </optgroup>
-                    </select>
+            <div class="flex items-center gap-4">
+                <!-- Indikator Kecepatan Jaringan -->
+                <div id="netStatus" class="text-xs bg-teal-800/60 px-3 py-1.5 rounded-full border border-teal-600 flex items-center gap-1.5">
+                    <span id="netDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="netText">Memeriksa Jaringan...</span>
                 </div>
+                <div id="liveClock" class="text-xs font-medium bg-teal-800/40 px-3 py-1.5 rounded-full hidden sm:block"></div>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition shadow">Keluar</button>
+            </div>
+        </header>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Dokumen / Kegiatan</label>
-                    <input type="date" id="activityDate" required class="w-full text-sm border-slate-300 rounded-lg p-2.5 border focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Foto (Bisa Lebih dari 1)</label>
-                    <input type="file" id="photoFiles" accept="image/*" multiple required class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
-                </div>
-
-                <div id="previewContainer" class="grid grid-cols-3 gap-2 hidden"></div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-tealAccent text-white font-medium py-2.5 rounded-lg shadow hover:bg-teal-700 transition flex items-center justify-center gap-2">
-                    <span>🚀</span> Unggah ke Sistem
-                </button>
-            </form>
+        <!-- Content Area -->
+        <main class="flex-grow container mx-auto p-4 md:p-6 max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <div id="userInfoNotification" class="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-800 hidden">
-                <p class="font-semibold flex items-center gap-1"><span>📌</span> Informasi:</p>
-                <p id="userUploadedStatusText" class="mt-1">Foto berhasil diunggah. Terima kasih atas partisipasi Anda!</p>
-            </div>
-        </section>
-
-        <section id="gallerySection" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 md:col-span-2 flex flex-col">
-            <div class="border-b pb-3 mb-4">
-                <h2 class="text-lg font-bold text-teal-800 flex items-center gap-2 mb-3">
-                    <span>📅</span> Arsip & Cari Foto Berdasarkan Rentang Tanggal
+            <!-- KOLOM 1: FORMULIR INPUT -->
+            <section id="formSection" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 h-fit">
+                <h2 class="text-base font-bold text-teal-800 mb-4 border-b pb-2 flex items-center gap-2">
+                    <span>📝</span> Form Input Laporan & Foto
                 </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <form id="distributionForm" class="space-y-4 text-sm">
                     <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Dari Tanggal</label>
-                        <input type="date" id="startDate" class="w-full text-xs border border-slate-300 p-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-600 mb-1">Sampai Tanggal</label>
-                        <input type="date" id="endDate" class="w-full text-xs border border-slate-300 p-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
-                    </div>
-                    <div class="flex items-end">
-                        <button onclick="searchByDateRange()" class="w-full bg-tealAccent hover:bg-teal-700 text-white text-xs font-medium py-2 px-4 rounded-lg transition flex items-center justify-center gap-1.5">
-                            <span>🔍</span> Tampilkan Foto
-                        </button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                    <div>
-                        <select id="filterInstitution" class="w-full text-xs border border-slate-300 p-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
-                            <option value="">-- Semua Instansi / Posyandu / Sekolah --</option>
-                            <optgroup label="Posyandu">
-                                <option value="Posyandu Anggrek">Posyandu Anggrek</option>
-                                <option value="Posyandu Melati">Posyandu Melati</option>
-                                <option value="Posyandu Tanjung 1">Posyandu Tanjung 1</option>
-                                <option value="Posyandu Tanjung 2">Posyandu Tanjung 2</option>
-                                <option value="Posyandu Sayang Ibu">Posyandu Sayang Ibu</option>
-                                <option value="Posyandu Palm Putri">Posyandu Palm Putri</option>
-                                <option value="Posyandu Bougenville">Posyandu Bougenville</option>
+                        <label class="block font-medium text-slate-700 mb-1">Nama Sekolah / Posyandu</label>
+                        <select id="institution" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
+                            <option value="">-- Pilih Tujuan --</option>
+                            <optgroup label="1. TK">
+                                <option value="TK AL MUSYAWARAH">TK AL MUSYAWARAH</option>
+                                <option value="TK ISLAM MODERN ASAIDA">TK ISLAM MODERN ASAIDA</option>
+                                <option value="TK KHALIFAH">TK KHALIFAH</option>
+                                <option value="TK UPI SERANG">TK UPI SERANG</option>
                             </optgroup>
-                            <optgroup label="Sekolah">
-                                <option value="TK Al Musyawarah">TK Al Musyawarah</option>
-                                <option value="TK Islam Modern Asaida">TK Islam Modern Asaida</option>
-                                <option value="TK Khalifah">TK Khalifah</option>
-                                <option value="SDN Sepang">SDN Sepang</option>
-                                <option value="SMP Bait Et Tauhid">SMP Bait Et Tauhid</option>
-                                <option value="SMA Bait Et Tauhid">SMA Bait Et Tauhid</option>
-                                <option value="TK UPI">TK UPI</option>
-                                <option value="SD UPI">SD UPI</option>
-                                <option value="SD Al Munawaroh">SD Al Munawaroh</option>
-                                <option value="SMP Al Munawaroh">SMP Al Munawaroh</option>
-                                <option value="SMK PGRI 3 Kota Serang">SMK PGRI 3 Kota Serang</option>
-                                <option value="SMK Intan Husada">SMK Intan Husada</option>
+                            <optgroup label="2. SD">
+                                <option value="SDN SEPANG">SDN SEPANG</option>
+                                <option value="SD UPI SERANG">SD UPI SERANG</option>
+                                <option value="SD ISLAM AL MUNAWAROH">SD ISLAM AL MUNAWAROH</option>
+                            </optgroup>
+                            <optgroup label="3. SMP">
+                                <option value="SMP ISLAM AL MUNAWAROH">SMP ISLAM AL MUNAWAROH</option>
+                                <option value="SMP BAIT ET TAUHID">SMP BAIT ET TAUHID</option>
+                            </optgroup>
+                            <optgroup label="4. SMA">
+                                <option value="SMA BAIT ET TAUHID">SMA BAIT ET TAUHID</option>
+                                <option value="SMK INTAN HUSADA">SMK INTAN HUSADA</option>
+                                <option value="SMKS PGRI 3 KOTA SERANG">SMKS PGRI 3 KOTA SERANG</option>
+                            </optgroup>
+                            <optgroup label="5. POSYANDU">
+                                <option value="POSYANDU PALM PUTRI">POSYANDU PALM PUTRI</option>
+                                <option value="POSYANDU BOUGENVILLE">POSYANDU BOUGENVILLE</option>
+                                <option value="POSYANDU ANGGREK">POSYANDU ANGGREK</option>
+                                <option value="POSYANDU MELATI">POSYANDU MELATI</option>
+                                <option value="POSYANDU TANJUNG 1">POSYANDU TANJUNG 1</option>
+                                <option value="POSYANDU TANJUNG 2">POSYANDU TANJUNG 2</option>
+                                <option value="POSYANDU SAYANG IBU">POSYANDU SAYANG IBU</option>
                             </optgroup>
                         </select>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1 text-xs">Jumlah Pengiriman</label>
+                            <input type="number" id="qtySent" required min="0" class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none" placeholder="Porsi">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1 text-xs">Jumlah Pengembalian</label>
+                            <input type="number" id="qtyReturned" required min="0" class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none" placeholder="Porsi">
+                        </div>
+                    </div>
+
                     <div>
-                        <input type="text" id="searchFilter" placeholder="Filter nama instansi / nama pengunggah..." class="w-full text-xs border border-slate-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
+                        <label class="block font-medium text-slate-700 mb-1">Tanggal Kegiatan</label>
+                        <input type="date" id="activityDate" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
+                    </div>
+
+                    <!-- Dokumentasi (Opsional / Tidak Wajib Semua) - Diperbarui support multiple files -->
+                    <div class="space-y-3 pt-2 border-t">
+                        <p class="text-[11px] text-slate-500 italic">Lampiran foto bersifat opsional (dapat memilih lebih dari 1 foto per kategori).</p>
+                        <div>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">1. Dokumentasi Pengiriman (Bisa > 1 Foto)</label>
+                            <input type="file" id="photoSent" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">2. Dokumentasi Penerimaan (Bisa > 1 Foto)</label>
+                            <input type="file" id="photoReceived" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">3. Dokumentasi Pengambilan (Bisa > 1 Foto)</label>
+                            <input type="file" id="photoTaken" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition flex items-center justify-center gap-2 mt-2">
+                        <span>🚀</span> Kirim Laporan & Arsipkan Foto
+                    </button>
+                </form>
+            </section>
+
+            <!-- KOLOM 2 & 3: RIWAYAT & ARSIP LAPORAN -->
+            <section id="gallerySection" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b pb-3 gap-2">
+                    <div>
+                        <h2 id="sectionTitle" class="text-base font-bold text-teal-800 flex items-center gap-2">
+                            <span>📂</span> Arsip Laporan & Foto 
+                        </h2>
+                        <p class="text-xs text-slate-500" id="roleSubtitle">Menampilkan seluruh data pengiriman makanan bergizi.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <button onclick="loadHistory()" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg font-medium text-slate-700 transition">🔄 Segarkan</button>
                     </div>
                 </div>
-            </div>
 
-            <div id="loadingIndicator" class="flex flex-col items-center justify-center py-12 hidden">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mb-2"></div>
-                <p class="text-xs text-slate-500">Memuat data foto...</p>
-            </div>
-
-            <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[500px] p-1">
+                <!-- Filter Panel: Rentang Tanggal & Pilih Instansi (Non-Manual) -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Dari Tanggal</label>
+                        <input type="date" id="filterStartDate" class="w-full border border-slate-300 rounded-lg p-1.5 bg-white focus:ring-1 focus:ring-tealAccent focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Sampai Tanggal</label>
+                        <input type="date" id="filterEndDate" class="w-full border border-slate-300 rounded-lg p-1.5 bg-white focus:ring-1 focus:ring-tealAccent focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Pilih Instansi</label>
+                        <select id="filterInstitution" class="w-full border border-slate-300 rounded-lg p-1.5 bg-white focus:ring-1 focus:ring-tealAccent focus:outline-none">
+                            <option value="">-- Semua Instansi --</option>
+                            <optgroup label="1. TK">
+                                <option value="TK AL MUSYAWARAH">TK AL MUSYAWARAH</option>
+                                <option value="TK ISLAM MODERN ASAIDA">TK ISLAM MODERN ASAIDA</option>
+                                <option value="TK KHALIFAH">TK KHALIFAH</option>
+                                <option value="TK UPI SERANG">TK UPI SERANG</option>
+                            </optgroup>
+                            <optgroup label="2. SD">
+                                <option value="SDN SEPANG">SDN SEPANG</option>
+                                <option value="SD UPI SERANG">SD UPI SERANG</option>
+                                <option value="SD ISLAM AL MUNAWAROH">SD ISLAM AL MUNAWAROH</option>
+                            </optgroup>
+                            <optgroup label="3. SMP">
+                                <option value="SMP ISLAM AL MUNAWAROH">SMP ISLAM AL MUNAWAROH</option>
+                                <option value="SMP BAIT ET TAUHID">SMP BAIT ET TAUHID</option>
+                            </optgroup>
+                            <optgroup label="4. SMA">
+                                <option value="SMA BAIT ET TAUHID">SMA BAIT ET TAUHID</option>
+                                <option value="SMK INTAN HUSADA">SMK INTAN HUSADA</option>
+                                <option value="SMKS PGRI 3 KOTA SERANG">SMKS PGRI 3 KOTA SERANG</option>
+                            </optgroup>
+                            <optgroup label="5. POSYANDU">
+                                <option value="POSYANDU PALM PUTRI">POSYANDU PALM PUTRI</option>
+                                <option value="POSYANDU BOUGENVILLE">POSYANDU BOUGENVILLE</option>
+                                <option value="POSYANDU ANGGREK">POSYANDU ANGGREK</option>
+                                <option value="POSYANDU MELATI">POSYANDU MELATI</option>
+                                <option value="POSYANDU TANJUNG 1">POSYANDU TANJUNG 1</option>
+                                <option value="POSYANDU TANJUNG 2">POSYANDU TANJUNG 2</option>
+                                <option value="POSYANDU SAYANG IBU">POSYANDU SAYANG IBU</option>
+                            </optgroup>
+                        </select>
+                    </div>
                 </div>
-            
-            <div id="initialState" class="text-center py-16 text-slate-400 text-sm">
-                Silakan pilih rentang tanggal di atas lalu klik <b>"Tampilkan Foto"</b> untuk melihat riwayat dan arsip foto.
-            </div>
-            <div id="emptyState" class="text-center py-16 text-slate-400 text-sm hidden">
-                Tidak ada foto ditemukan pada rentang tanggal tersebut.
-            </div>
-        </section>
-    </main>
 
+                <!-- Loader -->
+                <div id="loadingIndicator" class="flex flex-col items-center justify-center py-12 hidden">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-tealAccent mb-2"></div>
+                    <p class="text-xs text-slate-500">Memuat data arsip...</p>
+                </div>
+
+                <!-- Grid Data -->
+                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1">
+                    <!-- Dinamis dari Firebase & Drive -->
+                </div>
+                <div id="emptyState" class="text-center py-16 text-slate-400 text-sm hidden">Belum ada laporan atau arsip tersimpan.</div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal Detail Foto -->
     <div id="imageModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-        <div class="relative bg-white rounded-xl max-w-2xl w-full p-4 flex flex-col items-center">
+        <div class="relative bg-white rounded-xl max-w-xl w-full p-4 flex flex-col items-center">
             <button onclick="closeModal()" class="absolute top-3 right-3 text-slate-500 hover:text-black font-bold text-lg">✕</button>
-            <img id="modalImg" src="" class="max-h-[70vh] rounded-lg object-contain mb-3">
-            <p id="modalCaption" class="text-sm font-semibold text-slate-700 text-center mb-3"></p>
+            <img id="modalImg" src="" class="max-h-[60vh] rounded-lg object-contain mb-3 shadow">
+            <p id="modalCaption" class="text-xs font-semibold text-slate-700 text-center mb-4"></p>
             <div class="flex gap-3">
                 <a id="modalDownload" href="#" target="_blank" class="bg-tealAccent text-white text-xs px-4 py-2 rounded-lg hover:bg-teal-700 transition">Unduh Foto</a>
-                <button id="modalDelete" onclick="" class="bg-red-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-600 transition">Hapus Foto</button>
+                <button id="modalDeleteBtn" onclick="" class="bg-red-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-600 transition">Hapus Foto</button>
             </div>
         </div>
     </div>
 
+    <!-- SCRIPT APLIKASI UTAMA -->
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypQs_-AqscJn51auRIbIYLnxr505AUmg5h7lrr-nQ0Mxw49_KMc0ECWoiPtO3fxFsN/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4AlwUdidHIOA3R9wZil43Hjxs1p5I9l-0zCh_qMdx45nulYnLFNetsyNx31to2Afh/exec";
+        const FONNTE_TOKEN = "uJ8CF79nyQaJbPrVGeeE";
+        const FONNTE_TARGET = "6283111399112";
 
-        // Set Default Date to Today
-        const todayStr = new Date().toISOString().split('T')[0];
+        let currentUser = null;
+
+        // Set Default Tanggal Hari Ini
         document.getElementById('activityDate').valueAsDate = new Date();
-        document.getElementById('startDate').value = todayStr;
-        document.getElementById('endDate').value = todayStr;
 
         // Live Clock
         setInterval(() => {
             const now = new Date();
-            document.getElementById('liveClock').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID');
+            const clockEl = document.getElementById('liveClock');
+            if(clockEl) {
+                clockEl.innerText = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + now.toLocaleTimeString('id-ID');
+            }
         }, 1000);
 
-        // Notifikasi Profesional Pengganti Alert Bawaan
-        function showProfModal(title, message, type = 'info') {
-            const modal = document.getElementById('profModal');
-            const box = document.getElementById('profModalBox');
-            const iconEl = document.getElementById('profModalIcon');
-            const titleEl = document.getElementById('profModalTitle');
-            const msgEl = document.getElementById('profModalMessage');
-
-            titleEl.innerText = title;
-            msgEl.innerText = message;
-
-            if (type === 'success') {
-                iconEl.className = "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl bg-emerald-100 text-emerald-600";
-                iconEl.innerText = "✅";
-            } else if (type === 'error') {
-                iconEl.className = "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl bg-rose-100 text-rose-600";
-                iconEl.innerText = "❌";
-            } else {
-                iconEl.className = "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl bg-teal-50 text-teal-600";
-                iconEl.innerText = "ℹ️";
+        // Notifikasi Profesional (Pengganti Alert Standar)
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-emerald-600';
+            let icon = '✅';
+            if (type === 'error') {
+                bgClass = 'bg-red-600';
+                icon = '❌';
+            } else if (type === 'info') {
+                bgClass = 'bg-teal-700';
+                icon = 'ℹ️';
             }
 
-            modal.classList.remove('hidden');
-            setTimeout(() => box.classList.remove('scale-95'), 10);
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white shadow-xl text-xs font-medium transform transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<span class="text-base">${icon}</span> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
 
-        function closeProfModal() {
-            const modal = document.getElementById('profModal');
-            const box = document.getElementById('profModalBox');
-            box.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 200);
+        // Network Speed Indicator Checker
+        async function checkNetworkSpeed() {
+            const netDot = document.getElementById('netDot');
+            const netText = document.getElementById('netText');
+            try {
+                const startTime = new Date().getTime();
+                await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
+                const endTime = new Date().getTime();
+                const duration = (endTime - startTime) / 1000;
+                
+                if (duration < 0.3) {
+                    netDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                    netText.innerText = "Jaringan Sangat Cepat";
+                } else if (duration < 1.0) {
+                    netDot.className = "w-2 h-2 rounded-full bg-yellow-400 animate-pulse";
+                    netText.innerText = "Jaringan Stabil";
+                } else {
+                    netDot.className = "w-2 h-2 rounded-full bg-orange-400 animate-pulse";
+                    netText.innerText = "Jaringan Lambat";
+                }
+            } catch (e) {
+                netDot.className = "w-2 h-2 rounded-full bg-red-500";
+                netText.innerText = "Offline / Gangguan";
+            }
         }
+        setInterval(checkNetworkSpeed, 10000);
+        checkNetworkSpeed();
 
         // Toggle Password Visibility
-        function togglePasswordVisibility() {
-            const passwordInput = document.getElementById('loginPassword');
-            const eyeIcon = document.getElementById('eyeIcon');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.innerText = "👁️‍🗨️";
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.innerText = "👁";
+        function togglePassword() {
+            const passInput = document.getElementById('loginPass');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        }
+
+        // Cek Session Login localStorage (Logout otomatis setelah 1 minggu / 7 hari)
+        function checkSavedSession() {
+            const savedSession = localStorage.getItem('sppg_session');
+            const savedTime = localStorage.getItem('sppg_session_time');
+
+            if (savedSession && savedTime) {
+                const now = Date.now();
+                const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 hari dalam milidetik
+                if (now - parseInt(savedTime) < oneWeek) {
+                    currentUser = JSON.parse(savedSession);
+                    initAppUI();
+                } else {
+                    logout(); // Kadaluarsa setelah 1 minggu
+                }
             }
         }
 
-        // Login Handler & Session Check
+        function initAppUI() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('welcomeText').innerText = currentUser.title;
+
+            if (currentUser.name === 'Admin') {
+                document.getElementById('sectionTitle').innerHTML = '<span>📂</span> Arsip Laporan & Foto';
+                document.getElementById('roleSubtitle').innerText = "Menampilkan seluruh arsip laporan & identitas pengunggah dari tim dengan fitur pencarian foto.";
+            } else {
+                document.getElementById('sectionTitle').innerHTML = '<span>📋</span> Riwayat Laporan Instansi';
+                document.getElementById('roleSubtitle').innerText = `Menampilkan daftar riwayat nama instansi yang sudah Anda unggah.`;
+            }
+
+            loadHistory();
+        }
+
+        // Login Handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const u = document.getElementById('loginUsername').value.trim();
-            const p = document.getElementById('loginPassword').value.trim();
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value.trim();
 
-            let role = null;
-            let formattedName = u;
-            if (u.toLowerCase() === 'serang' && p === 'Mandiri02srg') {
-                role = 'ADMIN';
-                formattedName = 'Admin Serang';
-            } else if ((u.toLowerCase() === 'jimi' && p === 'A1403DV') || (u.toLowerCase() === 'galuh' && p === 'A1274KV')) {
-                role = 'USER';
-                formattedName = u.charAt(0).toUpperCase() + u.slice(1).toLowerCase();
+            let validRole = null;
+            if (u === 'Serang' && p === 'Mandiri02srg') {
+                validRole = { name: 'Admin', title: 'Selamat Datang Admin' };
+            } else if (u === 'Jimi' && p === 'A1403DV') {
+                validRole = { name: 'Jimi Kurniawan', title: 'Selamat Datang Jimi Kurniawan' };
+            } else if (u === 'Galuh' && p === 'A1274KV') {
+                validRole = { name: 'Wiranto Galuh Saputra', title: 'Selamat Datang Wiranto Galuh Saputra' };
             }
 
-            if (role) {
-                localStorage.setItem('sppg_role', role);
-                localStorage.setItem('sppg_user', formattedName);
-                applyRoleAccess(role, formattedName);
-                document.getElementById('loginPage').classList.add('hidden');
-                showProfModal('Login Berhasil', `Selamat datang, ${formattedName} (${role})!`, 'success');
+            if (validRole) {
+                currentUser = validRole;
+                // Simpan ke localStorage dengan batasan waktu 1 minggu
+                localStorage.setItem('sppg_session', JSON.stringify(validRole));
+                localStorage.setItem('sppg_session_time', Date.now().toString());
+
+                initAppUI();
             } else {
-                showProfModal('Login Gagal', 'Username atau password yang Anda masukkan salah.', 'error');
+                showNotification('Username atau Password salah!', 'error');
             }
         });
 
-        function applyRoleAccess(role, username) {
-            const mainGrid = document.getElementById('mainContainer');
-            const uploadSec = document.getElementById('uploadSection');
-            const gallerySec = document.getElementById('gallerySection');
-            const userBadge = document.getElementById('userBadge');
-            const headerSub = document.getElementById('headerSubtitle');
-
-            if (role === 'USER') {
-                userBadge.innerText = `User: ${username}`;
-                headerSub.innerText = `SPPG KOTA SERANG SERANG SERANG 2 - Login : ${username}`;
-                mainGrid.classList.remove('md:grid-cols-3', 'max-w-6xl');
-                mainGrid.classList.add('max-w-xl');
-                uploadSec.classList.remove('md:col-span-1');
-                uploadSec.classList.add('w-full');
-                gallerySec.classList.add('hidden');
-            } else {
-                userBadge.innerText = `Admin`;
-                headerSub.innerText = `SPPG KOTA SERANG 2`;
-                mainGrid.classList.add('md:grid-cols-3', 'max-w-6xl');
-                mainGrid.classList.remove('max-w-xl');
-                uploadSec.classList.add('md:col-span-1');
-                uploadSec.classList.remove('w-full');
-                gallerySec.classList.remove('hidden');
-            }
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('sppg_session');
+            localStorage.removeItem('sppg_session_time');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginForm').reset();
         }
 
-        function logoutSession() {
-            localStorage.removeItem('sppg_role');
-            localStorage.removeItem('sppg_user');
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('loginPage').classList.remove('hidden');
-        }
-
-        // Cek Sesi Saat Load
+        // Jalankan pemeriksaan sesi saat halaman dimuat
         window.addEventListener('DOMContentLoaded', () => {
-            const savedRole = localStorage.getItem('sppg_role');
-            const savedUser = localStorage.getItem('sppg_user');
-            if (savedRole) {
-                applyRoleAccess(savedRole, savedUser);
-                document.getElementById('loginPage').classList.add('hidden');
-            } else {
-                document.getElementById('loginPage').classList.remove('hidden');
-            }
+            checkSavedSession();
         });
 
-        // Preview Multiple Images
-        document.getElementById('photoFiles').addEventListener('change', function(e) {
-            const preview = document.getElementById('previewContainer');
-            preview.innerHTML = '';
-            const files = e.target.files;
-            if (files.length > 0) {
-                preview.classList.remove('hidden');
-                Array.from(files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const div = document.createElement('div');
-                        div.className = "relative aspect-square rounded-lg overflow-hidden border border-slate-200";
-                        div.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                        preview.appendChild(div);
-                    }
-                    reader.readAsDataURL(file);
-                });
-            } else {
-                preview.classList.add('hidden');
-            }
-        });
+        // Kirim WhatsApp via Fonnte API
+        function sendWhatsAppNotification(message) {
+            const formData = new URLSearchParams();
+            formData.append('target', FONNTE_TARGET);
+            formData.append('message', message);
+            formData.append('token', FONNTE_TOKEN);
 
-        // Fungsi Cari Berdasarkan Rentang Tanggal
-        function searchByDateRange() {
-            const startVal = document.getElementById('startDate').value;
-            const endVal = document.getElementById('endDate').value;
+            fetch('https://api.fonnte.com/send', {
+                method: 'POST',
+                headers: { "Authorization": FONNTE_TOKEN },
+                body: formData
+            }).catch(err => console.log('WA notification error', err));
+        }
 
-            if(!startVal || !endVal) {
-                showProfModal('Perhatian', 'Harap tentukan tanggal awal dan tanggal akhir!', 'info');
+        // Form Submit & Upload Multi Foto ke Drive & Firebase (Mendukung > 1 foto per kategori)
+        document.getElementById('distributionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const institution = document.getElementById('institution').value;
+            const qtySent = document.getElementById('qtySent').value;
+            const qtyReturned = document.getElementById('qtyReturned').value;
+            const rawDate = document.getElementById('activityDate').value;
+
+            const filesSentEl = document.getElementById('photoSent').files;
+            const filesRecvEl = document.getElementById('photoReceived').files;
+            const filesTakeEl = document.getElementById('photoTaken').files;
+
+            if (!institution || !rawDate) {
+                showNotification('Harap isi Nama Sekolah/Posyandu dan Tanggal kegiatan!', 'error');
                 return;
             }
 
+            if (filesSentEl.length === 0 && filesRecvEl.length === 0 && filesTakeEl.length === 0) {
+                showNotification('Harap unggah minimal satu foto dokumentasi!', 'error');
+                return;
+            }
+
+            const dateObj = new Date(rawDate);
+            const dateString = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Mengunggah Laporan & Foto...";
+
+            try {
+                const toBase64 = file => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = error => reject(error);
+                });
+
+                let filesArray = [];
+                
+                for (let i = 0; i < filesSentEl.length; i++) {
+                    filesArray.push({ name: `[KIRIM_${i+1}]_${filesSentEl[i].name}`, mimeType: filesSentEl[i].type, bytes: await toBase64(filesSentEl[i]) });
+                }
+                for (let i = 0; i < filesRecvEl.length; i++) {
+                    filesArray.push({ name: `[TERIMA_${i+1}]_${filesRecvEl[i].name}`, mimeType: filesRecvEl[i].type, bytes: await toBase64(filesRecvEl[i]) });
+                }
+                for (let i = 0; i < filesTakeEl.length; i++) {
+                    filesArray.push({ name: `[AMBIL_${i+1}]_${filesTakeEl[i].name}`, mimeType: filesTakeEl[i].type, bytes: await toBase64(filesTakeEl[i]) });
+                }
+
+                // Kirim ke Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'upload',
+                        institution: institution,
+                        dateString: dateString,
+                        files: filesArray
+                    })
+                });
+                const resData = await response.json();
+
+                if (resData.status === 'success') {
+                    const reportRef = window.dbRef(window.db, 'reports');
+                    const newReportRef = window.dbPush(reportRef);
+                    
+                    const reportPayload = {
+                        institution: institution,
+                        qtySent: qtySent,
+                        qtyReturned: qtyReturned,
+                        date: dateString,
+                        rawDate: rawDate, // Menyimpan format yyyy-mm-dd untuk kemudahan filter rentang tanggal
+                        uploader: currentUser.name,
+                        timestamp: Date.now(),
+                        files: resData.files || []
+                    };
+
+                    await window.dbSet(newReportRef, reportPayload);
+
+                    const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
+                    sendWhatsAppNotification(waMessage);
+
+                    showNotification('Laporan & Dokumentasi berhasil diunggah!');
+                    document.getElementById('distributionForm').reset();
+                    document.getElementById('activityDate').valueAsDate = new Date();
+                    loadHistory();
+                } else {
+                    showNotification('Gagal mengunggah ke Sistem : ' + resData.message, 'error');
+                }
+            } catch (err) {
+                showNotification('Terjadi kesalahan sistem: ' + err.toString(), 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "🚀 Kirim Laporan & Arsipkan Foto";
+            }
+        });
+
+        // Load History from Firebase & Drive
+        function loadHistory() {
             const loader = document.getElementById('loadingIndicator');
             const grid = document.getElementById('galleryGrid');
             const empty = document.getElementById('emptyState');
-            const initial = document.getElementById('initialState');
 
-            initial.classList.add('hidden');
             loader.classList.remove('hidden');
             grid.innerHTML = '';
             empty.classList.add('hidden');
 
-            fetch(`${SCRIPT_URL}?action=getHistory`)
-                .then(response => response.json())
-                .then(res => {
-                    loader.classList.add('hidden');
-                    if(res.status === 'success') {
-                        const allData = res.data || [];
-                        
-                        const startDateObj = new Date(startVal);
-                        startDateObj.setHours(0,0,0,0);
-                        const endDateObj = new Date(endVal);
-                        endDateObj.setHours(23,59,59,999);
+            const reportsRef = window.dbRef(window.db, 'reports');
+            window.dbOnValue(reportsRef, (snapshot) => {
+                loader.classList.add('hidden');
+                const data = snapshot.val();
+                if (!data) {
+                    empty.classList.remove('hidden');
+                    window.allReportsCache = [];
+                    return;
+                }
 
-                        const filtered = allData.filter(item => {
-                            const itemDate = new Date(item.created);
-                            return itemDate >= startDateObj && itemDate <= endDateObj;
-                        });
+                let reportsArray = Object.keys(data).map(key => ({
+                    firebaseId: key,
+                    ...data[key]
+                }));
 
-                        window.historyDataCache = filtered;
-                        renderGallery(filtered);
-                    } else {
-                        showProfModal('Gagal', 'Gagal memuat data: ' + res.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    loader.classList.add('hidden');
-                    showProfModal('Kesalahan', 'Terjadi kesalahan koneksi.', 'error');
-                });
+                // Filter berdasar role (User hanya melihat daftar nama instansinya sendiri tanpa foto)
+                if (currentUser && currentUser.name !== 'Admin') {
+                    reportsArray = reportsArray.filter(r => r.uploader === currentUser.name);
+                }
+
+                window.allReportsCache = reportsArray;
+                applyFilters();
+            }, { onlyOnce: true });
         }
 
-        function renderGallery(data) {
+        function renderGallery(reports) {
             const grid = document.getElementById('galleryGrid');
             const empty = document.getElementById('emptyState');
-            const initial = document.getElementById('initialState');
-            
-            initial.classList.add('hidden');
             grid.innerHTML = '';
 
-            if(!data || data.length === 0) {
+            if (!reports || reports.length === 0) {
                 empty.classList.remove('hidden');
                 return;
             }
 
-            empty.classList.add('hidden');
-            data.sort((a, b) => b.created - a.created);
+            reports.sort((a, b) => b.timestamp - a.timestamp);
+            const isAdmin = currentUser && currentUser.name === 'Admin';
 
-            data.forEach((item, index) => {
-                const uploaderName = item.uploader || localStorage.getItem('sppg_user') || 'Jimi Kurniawan / Wiranto Galuh Saputra';
+            reports.forEach(report => {
                 const card = document.createElement('div');
-                card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 flex gap-3 items-center hover:shadow-md transition group";
-                card.innerHTML = `
-                    <div class="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-slate-200 relative cursor-pointer" onclick="openModal('${item.url}', '${item.name}', '${item.institution} - ${item.date}', '${item.id}')">
-                        <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                    </div>
-                    <div class="text-xs flex-grow overflow-hidden">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded text-[10px]">Arsip #${index + 1}</span>
-                            <span class="text-[10px] text-slate-400">${item.date}</span>
+                card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow transition";
+                
+                let contentHtml = '';
+                if (isAdmin) {
+                    // Tampilan Admin: Lengkap dengan Foto & Pencarian detail
+                    let filesHtml = '<div class="grid grid-cols-3 gap-2 my-2">';
+                    if (report.files && report.files.length > 0) {
+                        report.files.forEach(f => {
+                            const thumbUrl = "https://lh3.googleusercontent.com/d/" + f.id;
+                            filesHtml += `
+                                <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border cursor-pointer relative group" onclick="openModal('${f.url}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
+                                    <img src="${thumbUrl}" class="w-full h-full object-cover group-hover:scale-105 transition">
+                                </div>
+                            `;
+                        });
+                    }
+                    filesHtml += '</div>';
+
+                    contentHtml = `
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-bold text-teal-800 text-sm">${report.institution}</h3>
+                                <span class="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-semibold border border-teal-200">${report.date}</span>
+                            </div>
+                            <div class="text-xs text-slate-600 grid grid-cols-2 gap-1 mb-2 bg-white p-2 rounded border">
+                                <p>📦 Kirim: <strong class="text-slate-800">${report.qtySent} porsi</strong></p>
+                                <p>↩️ Kembali: <strong class="text-slate-800">${report.qtyReturned} porsi</strong></p>
+                            </div>
+                            ${filesHtml}
                         </div>
-                        <p class="font-bold text-slate-800 truncate" title="${item.institution}">${item.institution}</p>
-                        <p class="text-teal-700 font-semibold mt-1">👤 Diunggah oleh: <span class="uppercase">${uploaderName}</span></p>
-                        <p class="text-[10px] text-slate-400 truncate mt-0.5">File: ${item.name}</p>
+                    `;
+                } else {
+                    // Tampilan User: Hanya menampilkan riwayat nama instansi, tanggal, dan jumlah (TANPA FOTO)
+                    contentHtml = `
+                        <div>
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-bold text-teal-800 text-sm">🏫 ${report.institution}</h3>
+                                <span class="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-semibold border border-teal-200">${report.date}</span>
+                            </div>
+                            <div class="text-xs text-slate-600 grid grid-cols-2 gap-1 my-2 bg-white p-2.5 rounded border">
+                                <p>📦 Kirim: <strong class="text-slate-800">${report.qtySent} porsi</strong></p>
+                                <p>↩️ Kembali: <strong class="text-slate-800">${report.qtyReturned} porsi</strong></p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Ambil semua ID file untuk tombol hapus laporan menyeluruh
+                let fileIdsArray = report.files ? report.files.map(f => f.id) : [];
+                let fileIdsJson = JSON.stringify(fileIdsArray).replace(/"/g, '&quot;');
+
+                card.innerHTML = `
+                    ${contentHtml}
+                    <div class="flex justify-between items-center text-[11px] text-slate-400 border-t pt-2 mt-1">
+                        <span>👤 Pengirim: <strong class="text-teal-700">${report.uploader}</strong></span>
+                        ${isAdmin ? `<button onclick="deleteReport('${report.firebaseId}',${fileIdsJson})" class="text-red-500 hover:underline">Hapus Laporan</button>` : ''}
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
+        // Fungsi Filter Rentang Tanggal & Instansi
         function applyFilters() {
-            if(!window.historyDataCache) return;
-            const keyword = document.getElementById('searchFilter').value.toLowerCase();
+            if (!window.allReportsCache) return;
+            
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
             const selectedInst = document.getElementById('filterInstitution').value;
 
-            const filtered = window.historyDataCache.filter(item => {
-                const uploader = (item.uploader || '').toLowerCase();
-                const matchKeyword = item.institution.toLowerCase().includes(keyword) || 
-                                     item.date.toLowerCase().includes(keyword) ||
-                                     uploader.includes(keyword);
-                const matchInst = selectedInst === "" || item.institution === selectedInst;
-                return matchKeyword && matchInst;
+            let filtered = window.allReportsCache.filter(r => {
+                let matchInst = !selectedInst || r.institution === selectedInst;
+                let matchDate = true;
+
+                if (startDate || endDate) {
+                    let rDate = r.rawDate || '';
+                    if (rDate) {
+                        if (startDate && rDate < startDate) matchDate = false;
+                        if (endDate && rDate > endDate) matchDate = false;
+                    } else {
+                        matchDate = false;
+                    }
+                }
+
+                return matchInst && matchDate;
             });
+
             renderGallery(filtered);
         }
 
-        document.getElementById('searchFilter').addEventListener('input', applyFilters);
+        // Event listener untuk filter
+        document.getElementById('filterStartDate').addEventListener('change', applyFilters);
+        document.getElementById('filterEndDate').addEventListener('change', applyFilters);
         document.getElementById('filterInstitution').addEventListener('change', applyFilters);
 
-        // Form Submit Handler
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const institution = document.getElementById('institution').value;
-            const rawDate = document.getElementById('activityDate').value;
-            const filesInput = document.getElementById('photoFiles').files;
-            const currentUploader = localStorage.getItem('sppg_user') || 'Jimi Kurniawan';
-
-            if(!institution || !rawDate || filesInput.length === 0) {
-                showProfModal('Perhatian', 'Harap lengkapi seluruh kolom dan pilih minimal satu foto!', 'info');
-                return;
-            }
-
-            const dateObj = new Date(rawDate);
-            const options = { day: '2-digit', month: 'long', year: 'numeric' };
-            const dateString = dateObj.toLocaleDateString('id-ID', options);
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Mengunggah...";
-
-            let readersProcessed = 0;
-            let filesData = [];
-
-            Array.from(filesInput).forEach((file) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Bytes = e.target.result.split(',')[1];
-                    filesData.push({
-                        name: file.name,
-                        mimeType: file.type,
-                        bytes: base64Bytes
-                    });
-
-                    readersProcessed++;
-                    if(readersProcessed === filesInput.length) {
-                        fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                action: 'upload',
-                                institution: institution,
-                                dateString: dateString,
-                                uploader: currentUploader,
-                                files: filesData
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(res => {
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = "🚀 Unggah ke Sistem";
-                            if(res.status === 'success') {
-                                showProfModal('Berhasil', `Berhasil mengunggah foto ke folder otomatis! (Oleh: ${currentUploader})`, 'success');
-                                document.getElementById('uploadForm').reset();
-                                document.getElementById('previewContainer').classList.add('hidden');
-                                document.getElementById('activityDate').valueAsDate = new Date();
-                                
-                                const userInfoNotif = document.getElementById('userInfoNotification');
-                                const statusText = document.getElementById('userUploadedStatusText');
-                                statusText.innerText = `Foto untuk ${institution} (${dateString}) berhasil diunggah oleh ${currentUploader}.`;
-                                userInfoNotif.classList.remove('hidden');
-                            } else {
-                                showProfModal('Gagal', 'Gagal: ' + res.message, 'error');
-                            }
-                        })
-                        .catch(err => {
-                            submitBtn.disabled = false;
-                            submitBtn.innerText = "🚀 Unggah ke Sistem";
-                            showProfModal('Kesalahan', 'Terjadi kesalahan saat mengunggah.', 'error');
-                        });
-                    }
-                }
-                reader.readAsDataURL(file);
-            });
-        });
-
-        // Modal Functions
-        function openModal(url, name, caption, id) {
+        // Modal Preview Foto
+        function openModal(url, name, caption, fileId, firebaseId) {
             document.getElementById('modalImg').src = url;
-            document.getElementById('modalCaption').innerText = caption + ' (' + name + ')';
+            document.getElementById('modalCaption').innerText = caption;
             document.getElementById('modalDownload').href = url;
-            document.getElementById('modalDelete').setAttribute('onclick', `deleteFile('${id}')`);
+            document.getElementById('modalDeleteBtn').setAttribute('onclick', `deleteFileItem('${fileId}')`);
             document.getElementById('imageModal').classList.remove('hidden');
         }
 
@@ -591,27 +706,40 @@
             document.getElementById('imageModal').classList.add('hidden');
         }
 
-        function deleteFile(fileId) {
-            if(confirm('Apakah Anda yakin ingin menghapus foto ini dari Sistem?')) {
+        // Hapus File Satuan di Drive & Web
+        function deleteFileItem(fileId) {
+            if (confirm('Apakah Anda yakin ingin menghapus foto ini dari Sistem')) {
                 fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify({
-                        action: 'delete',
-                        fileId: fileId
-                    })
+                    body: JSON.stringify({ action: 'delete', fileId: fileId })
                 })
-                .then(response => response.json())
-                .then(res => {
-                    if(res.status === 'success') {
-                        showProfModal('Berhasil', 'Foto berhasil dihapus.', 'success');
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotification('Foto berhasil dihapus.');
                         closeModal();
-                        searchByDateRange();
+                        loadHistory();
                     } else {
-                        showProfModal('Gagal', 'Gagal menghapus foto: ' + res.message, 'error');
+                        showNotification('Gagal menghapus file: ' + data.message, 'error');
                     }
-                })
-                .catch(err => {
-                    showProfModal('Kesalahan', 'Terjadi kesalahan sistem.', 'error');
+                }).catch(() => showNotification('Terjadi kesalahan koneksi.', 'error'));
+            }
+        }
+
+        // Hapus Seluruh Laporan & File di Drive Terkait
+        function deleteReport(firebaseId, fileIds) {
+            if (confirm('Hapus seluruh laporan dan file foto terkait dari Sistem')) {
+                // Hapus file-file di Google Drive terlebih dahulu
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'deleteReportFiles', fileIds: fileIds })
+                }).catch(err => console.log('Drive delete batch error', err));
+
+                // Hapus data dari Firebase Realtime Database
+                const reportRef = window.dbRef(window.db, `reports/${firebaseId}`);
+                window.dbRemove(reportRef).then(() => {
+                    showNotification('Laporan dan file foto di Sistem berhasil dihapus.');
+                    loadHistory();
                 });
             }
         }
