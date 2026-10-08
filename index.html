@@ -436,8 +436,13 @@
                 if (dateInput) {
                     const now = new Date();
                     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                    dateInput.value = now.toISOString().slice(0, 16);
-                    updateAvailableInstitutions();
+                    const newTimeString = now.toISOString().slice(0, 16);
+                    
+                    // Hanya update dan refresh jika string tanggal berubah (menit berubah)
+                    if (dateInput.value !== newTimeString) {
+                        dateInput.value = newTimeString;
+                        updateAvailableInstitutions();
+                    }
                 }
             }
         }
