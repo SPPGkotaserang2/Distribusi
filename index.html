@@ -310,6 +310,7 @@
         let currentUser = null;
         let isSyncing = false; // Status global proses sinkronisasi
         let isUserEditingDate = false; // Flag pelacak apakah user sedang memilih tanggal manual
+        let rawGlobalReports = []; // Cache global seluruh data laporan tanpa difilter role
 
         // Simpan template asli dari opsi select institution agar bisa direstore dengan utuh
         let originalInstitutionOptionsHtml = "";
@@ -320,7 +321,7 @@
             }
         });
 
-        // Fungsi memperbarui opsi form institution berdasarkan tanggal kegiatan yang dipilih
+        // Fungsi memperbarui opsi form institution berdasarkan tanggal kegiatan yang dipilih (Global Check)
         function updateAvailableInstitutions() {
             const instSelect = document.getElementById('institution');
             const rawDateVal = document.getElementById('activityDate').value;
@@ -332,10 +333,10 @@
             // Restore HTML asli terlebih dahulu agar semua pilihan tampil kembali
             instSelect.innerHTML = originalInstitutionOptionsHtml;
 
-            // Kumpulkan instansi yang sudah di-upload khusus pada tanggal yang sedang dipilih
+            // Kumpulkan instansi yang sudah di-upload dari SELURUH PENGGUNA (rawGlobalReports) pada tanggal tersebut
             let uploadedInstitutionsForDate = new Set();
-            if (window.allReportsCache && window.allReportsCache.length > 0) {
-                window.allReportsCache.forEach(r => {
+            if (rawGlobalReports && rawGlobalReports.length > 0) {
+                rawGlobalReports.forEach(r => {
                     const rDateKey = r.rawDate ? r.rawDate.slice(0, 10) : '';
                     if (rDateKey === selectedDateKey && r.institution) {
                         uploadedInstitutionsForDate.add(r.institution);
@@ -610,7 +611,6 @@
 
         // Kirim Ulang Laporan yang Gagal (Timeout 1 menit / 60 detik)
         async function resendReport(reportKey) {
-            // Cek kondisi stabilitas internet sebelum kirim ulang
             const netState = await checkNetworkSpeed();
             if (netState === 'slow' || netState === 'offline') {
                 showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
@@ -631,7 +631,6 @@
             const submitBtn = document.getElementById('submitBtn');
             isSyncing = true;
             submitBtn.disabled = true;
-            submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
@@ -639,11 +638,23 @@
             showNotification('Proses pengiriman ulang ke Sistem dimulai...', 'info');
             loadHistory();
 
+            let timeLeft = 60;
+            submitBtn.innerText = `Sedang Dikirim... (${timeLeft}s)`;
+            
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0 && isSyncing) {
+                    submitBtn.innerText = `Sedang Dikirim... (${timeLeft}s)`;
+                } else {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+
             let isTimedOut = false;
-            // Batas waktu maksimal 1 menit (60000 ms)
             const timeoutTimer = setTimeout(async () => {
                 isTimedOut = true;
                 isSyncing = false;
+                clearInterval(countdownInterval);
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                 submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
@@ -681,6 +692,7 @@
 
                 if (isTimedOut) return;
                 clearTimeout(timeoutTimer);
+                clearInterval(countdownInterval);
 
                 const resData = await response.json();
 
@@ -697,12 +709,14 @@
             } catch (err) {
                 if (isTimedOut) return;
                 clearTimeout(timeoutTimer);
+                clearInterval(countdownInterval);
                 console.error('Error background sync:', err);
                 await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
                 showNotification('Proses gagal/terputus. Harus diulangi!', 'error');
             } finally {
                 if (!isTimedOut) {
                     isSyncing = false;
+                    clearInterval(countdownInterval);
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                     submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
@@ -711,13 +725,16 @@
             }
         }
 
-        // Form Submit & Process Background Sync
+        // Form Submit & Process Background Sync (Offline Instant Process < 3 detik untuk Jimi & Galuh)
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Cek stabilitas internet sebelum mengirim data
+            // Cek pengguna saat ini: Jimi Kurniawan atau Wiranto Galuh Saputra
+            const isOfflineUser = currentUser && (currentUser.name === 'Jimi Kurniawan' || currentUser.name === 'Wiranto Galuh Saputra');
+
+            // Cek stabilitas internet jika bukan user offline
             const netState = await checkNetworkSpeed();
-            if (netState === 'slow' || netState === 'offline') {
+            if (!isOfflineUser && (netState === 'slow' || netState === 'offline')) {
                 showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
                 return;
             }
@@ -748,14 +765,11 @@
 
             const dateObj = new Date(rawDate);
             const dateString = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-            const dateKeyOnly = rawDate.slice(0, 10); // Format YYYY-MM-DD untuk pengecekan penggabungan tanggal yang sama
+            const dateKeyOnly = rawDate.slice(0, 10);
 
             const submitBtn = document.getElementById('submitBtn');
-            
-            isSyncing = true;
             submitBtn.disabled = true;
-            // Teks tombol diperbarui sesuai permintaan
-            submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
+            submitBtn.innerText = "Memproses laporan...";
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
@@ -788,12 +802,12 @@
                 await processFiles(fRecvFiles, 'TERIMA');
                 await processFiles(fTakeFiles, 'AMBIL');
 
-                // Cek apakah sudah ada laporan dengan instansi dan tanggal yang sama (Fitur Gabung Foto Pagi & Siang)
+                // Cek penggabungan tanggal pada data global
                 let existingReport = null;
                 let existingReportKey = null;
 
-                if (window.allReportsCache && window.allReportsCache.length > 0) {
-                    existingReport = window.allReportsCache.find(r => {
+                if (rawGlobalReports && rawGlobalReports.length > 0) {
+                    existingReport = rawGlobalReports.find(r => {
                         const rDateKey = r.rawDate ? r.rawDate.slice(0, 10) : '';
                         return r.institution === institution && rDateKey === dateKeyOnly;
                     });
@@ -807,7 +821,6 @@
                 const reportsRef = window.dbRef(window.db, 'reports');
 
                 if (existingReport && existingReportKey) {
-                    // Gabungkan foto baru ke laporan yang sudah ada di hari yang sama
                     reportKey = existingReportKey;
                     const oldFiles = existingReport.files || [];
                     finalFilesList = [...oldFiles, ...tempFiles];
@@ -817,10 +830,9 @@
                         qtySent: (parseInt(existingReport.qtySent || 0) + parseInt(qtySent)).toString(),
                         qtyReturned: (parseInt(existingReport.qtyReturned || 0) + parseInt(qtyReturned)).toString(),
                         files: finalFilesList,
-                        syncStatus: 'syncing'
+                        syncStatus: 'offline'
                     });
                 } else {
-                    // Buat laporan baru jika belum ada di hari tersebut
                     const newReportRef = window.dbPush(reportsRef);
                     reportKey = newReportRef.key;
                     finalFilesList = tempFiles;
@@ -833,39 +845,54 @@
                         rawDate: rawDate,
                         uploader: currentUser.name,
                         timestamp: Date.now(),
-                        syncStatus: 'syncing',
+                        syncStatus: 'offline',
                         files: finalFilesList
                     };
 
                     await window.dbSet(newReportRef, reportPayload);
                 }
 
-                showNotification('Laporan & foto tersimpan!', 'info');
+                // Pengisian berhasil instan (< 3 detik)
+                showNotification('Laporan & foto berhasil diproses!', 'success');
                 document.getElementById('distributionForm').reset();
                 isUserEditingDate = false;
                 updateLiveInputDate();
-                
                 loadHistory();
 
-                // 2. Kirim Notifikasi WA
-                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Tersimpan di Sistem.`;
+                // Notifikasi Whatsapp
+                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Tersimpan.`;
                 sendWhatsAppNotification(waMessage);
 
-                // 3. Sinkronisasi di Latar Belakang (Background Sync) ke Google Drive
+                // Sinkronisasi Latar Belakang ke Google Drive & Firebase dengan Timer Hitung Mundur
                 (async () => {
-                    let isTimedOut = false;
+                    isSyncing = true;
+                    let timeLeft = 60;
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = `Menyinkronkan data... (${timeLeft}s)`;
 
-                    // Maksimal 1 menit (60.000 ms)
+                    const countdownInterval = setInterval(() => {
+                        timeLeft--;
+                        if (timeLeft > 0 && isSyncing) {
+                            submitBtn.innerText = `Menyinkronkan data... (${timeLeft}s)`;
+                        } else {
+                            clearInterval(countdownInterval);
+                        }
+                    }, 1000);
+
+                    // Update status Firebase ke syncing
+                    const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
+                    await window.dbUpdate(updatedReportRef, { syncStatus: 'syncing' });
+
+                    let isTimedOut = false;
                     const timeoutTimer = setTimeout(async () => {
                         isTimedOut = true;
-                        isSyncing = false; 
+                        isSyncing = false;
+                        clearInterval(countdownInterval);
                         submitBtn.disabled = false;
                         submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                         submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
 
-                        const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                         await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-
                         showNotification('Proses kirim gagal (Lebih dari 1 menit). Harus diulangi!', 'error');
                         loadHistory();
                     }, 60000);
@@ -893,31 +920,32 @@
                         if (isTimedOut) return;
 
                         clearTimeout(timeoutTimer);
+                        clearInterval(countdownInterval);
+
                         const resData = await response.json();
 
                         if (resData.status === 'success') {
-                            const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                             await window.dbUpdate(updatedReportRef, {
                                 files: resData.files || [],
                                 syncStatus: 'synced'
                             });
-                            showNotification('Foto & Arsip berhasil Di simpan 100%!', 'success');
+                            showNotification('Foto & Arsip berhasil Disimpan Ke sistem 100%!', 'success');
                         } else {
-                            const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                             await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
                             showNotification('Proses Kirim gagal: Harus diulangi!', 'error');
                         }
                     } catch (err) {
                         if (isTimedOut) return;
                         clearTimeout(timeoutTimer);
+                        clearInterval(countdownInterval);
                         console.error('Error background sync:', err);
                         
-                        const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                         await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
                         showNotification('Proses gagal/terputus. Harus diulangi!', 'error');
                     } finally {
                         if (!isTimedOut) {
                             isSyncing = false;
+                            clearInterval(countdownInterval);
                             submitBtn.disabled = false;
                             submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                             submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
@@ -953,6 +981,7 @@
                 const data = snapshot.val();
                 if (!data) {
                     empty.classList.remove('hidden');
+                    rawGlobalReports = [];
                     window.allReportsCache = [];
                     updateAvailableInstitutions();
                     return;
@@ -963,6 +992,10 @@
                     ...data[key]
                 }));
 
+                // Simpan seluruh data tanpa filter role untuk sinkronisasi pilihan instansi
+                rawGlobalReports = reportsArray;
+
+                // Saring riwayat yang tampil berdasarkan role user login
                 if (currentUser && currentUser.name !== 'Admin') {
                     reportsArray = reportsArray.filter(r => r.uploader === currentUser.name);
                 }
@@ -970,14 +1003,14 @@
                 const hasSyncing = reportsArray.some(r => r.syncStatus === 'syncing');
                 const submitBtn = document.getElementById('submitBtn');
 
-                if (hasSyncing) {
+                if (hasSyncing && !isSyncing) {
                     isSyncing = true;
                     if (submitBtn) {
                         submitBtn.disabled = true;
                         submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
                         submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
                     }
-                } else if (!isSyncing) {
+                } else if (!hasSyncing && !isSyncing) {
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.innerText = "Kirim Laporan";
@@ -1014,6 +1047,10 @@
                 if (report.syncStatus === 'synced' || (!report.syncStatus && report.files && report.files.length > 0 && !report.files[0].isTemp)) {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold border border-emerald-300" title="Proses Berhasil">
                         ✓ Berhasil Terkirim
+                    </span>`;
+                } else if (report.syncStatus === 'offline') {
+                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold border border-slate-300" title="Tersimpan">
+                        📱 Tersimpan
                     </span>`;
                 } else if (report.syncStatus === 'syncing' || (report.files && report.files.some(f => f.isTemp) && report.syncStatus !== 'failed')) {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse" title="Proses Kirim ke Sistem">
@@ -1180,3 +1217,4 @@
     </script>
 </body>
 </html>
+
