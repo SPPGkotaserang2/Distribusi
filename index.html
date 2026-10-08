@@ -451,16 +451,20 @@
                 if (duration < 0.3) {
                     netDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
                     netText.innerText = "Jaringan Sangat Cepat";
+                    return 'fast';
                 } else if (duration < 1.0) {
                     netDot.className = "w-2 h-2 rounded-full bg-yellow-400 animate-pulse";
                     netText.innerText = "Jaringan Stabil";
+                    return 'stable';
                 } else {
                     netDot.className = "w-2 h-2 rounded-full bg-orange-400 animate-pulse";
                     netText.innerText = "Jaringan Lambat";
+                    return 'slow';
                 }
             } catch (e) {
                 netDot.className = "w-2 h-2 rounded-full bg-red-500";
                 netText.innerText = "Offline / Gangguan";
+                return 'offline';
             }
         }
         setInterval(checkNetworkSpeed, 10000);
@@ -540,6 +544,13 @@
 
         // Kirim Ulang Laporan yang Gagal (Timeout 1 menit / 60 detik)
         async function resendReport(reportKey) {
+            // Cek kondisi stabilitas internet sebelum kirim ulang
+            const netState = await checkNetworkSpeed();
+            if (netState === 'slow' || netState === 'offline') {
+                showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
+                return;
+            }
+
             if (isSyncing) {
                 showNotification('Tunggu Sebentar, proses lain sedang berjalan', 'error');
                 return;
@@ -638,6 +649,13 @@
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            // Cek stabilitas internet sebelum mengirim data
+            const netState = await checkNetworkSpeed();
+            if (netState === 'slow' || netState === 'offline') {
+                showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
+                return;
+            }
+
             if (isSyncing) {
                 showNotification('Tunggu Sebentar, proses Kirim sedang berjalan', 'error');
                 return;
@@ -663,7 +681,8 @@
             }
 
             const dateObj = new Date(rawDate);
-            const dateString = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const dateString = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            const dateKeyOnly = rawDate.slice(0, 10); // Format YYYY-MM-DD untuk pengecekan penggabungan tanggal yang sama
 
             const submitBtn = document.getElementById('submitBtn');
             
@@ -675,14 +694,13 @@
 
             try {
                 let tempFiles = [];
-                let filesToUpload = [];
 
                 const processFiles = async (fileList, prefix) => {
                     for (let i = 0; i < fileList.length; i++) {
                         const file = fileList[i];
-                        const name = `[${prefix}_${i+1}]_${file.name}`;
+                        const name = `[${prefix}_${Date.now()}_${i+1}]_${file.name}`;
                         
-                        // Membaca gambar offline ke format base64
+                        // Membaca gambar offline secara instan ke format base64
                         const base64Data = await new Promise((resolve) => {
                             const reader = new FileReader();
                             reader.onload = e => resolve(e.target.result);
@@ -697,11 +715,6 @@
                             mimeType: file.type || 'image/jpeg',
                             isTemp: true
                         });
-
-                        filesToUpload.push({
-                            file: file,
-                            name: name
-                        });
                     }
                 };
 
@@ -709,26 +722,59 @@
                 await processFiles(fRecvFiles, 'TERIMA');
                 await processFiles(fTakeFiles, 'AMBIL');
 
-                // 1. Simpan laporan langsung secara offline/lokal ke Firebase (Langsung muncul di web UI)
-                const reportRef = window.dbRef(window.db, 'reports');
-                const newReportRef = window.dbPush(reportRef);
-                const reportKey = newReportRef.key;
+                // Cek apakah sudah ada laporan dengan instansi dan tanggal yang sama (Fitur Gabung Foto Pagi & Siang)
+                let existingReport = null;
+                let existingReportKey = null;
 
-                const reportPayload = {
-                    institution: institution,
-                    qtySent: qtySent,
-                    qtyReturned: qtyReturned,
-                    date: dateString,
-                    rawDate: rawDate,
-                    uploader: currentUser.name,
-                    timestamp: Date.now(),
-                    syncStatus: 'syncing',
-                    files: tempFiles
-                };
+                if (window.allReportsCache && window.allReportsCache.length > 0) {
+                    existingReport = window.allReportsCache.find(r => {
+                        const rDateKey = r.rawDate ? r.rawDate.slice(0, 10) : '';
+                        return r.institution === institution && rDateKey === dateKeyOnly;
+                    });
+                    if (existingReport) {
+                        existingReportKey = existingReport.firebaseId;
+                    }
+                }
 
-                await window.dbSet(newReportRef, reportPayload);
+                let reportKey = '';
+                let finalFilesList = [];
+                const reportsRef = window.dbRef(window.db, 'reports');
 
-                showNotification('Laporan & foto disimpan. Sedang Dikirim...', 'info');
+                if (existingReport && existingReportKey) {
+                    // Gabungkan foto baru ke laporan yang sudah ada di hari yang sama
+                    reportKey = existingReportKey;
+                    const oldFiles = existingReport.files || [];
+                    finalFilesList = [...oldFiles, ...tempFiles];
+
+                    const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
+                    await window.dbUpdate(updatedReportRef, {
+                        qtySent: (parseInt(existingReport.qtySent || 0) + parseInt(qtySent)).toString(),
+                        qtyReturned: (parseInt(existingReport.qtyReturned || 0) + parseInt(qtyReturned)).toString(),
+                        files: finalFilesList,
+                        syncStatus: 'syncing'
+                    });
+                } else {
+                    // Buat laporan baru jika belum ada di hari tersebut
+                    const newReportRef = window.dbPush(reportsRef);
+                    reportKey = newReportRef.key;
+                    finalFilesList = tempFiles;
+
+                    const reportPayload = {
+                        institution: institution,
+                        qtySent: qtySent,
+                        qtyReturned: qtyReturned,
+                        date: dateString,
+                        rawDate: rawDate,
+                        uploader: currentUser.name,
+                        timestamp: Date.now(),
+                        syncStatus: 'syncing',
+                        files: finalFilesList
+                    };
+
+                    await window.dbSet(newReportRef, reportPayload);
+                }
+
+                showNotification('Laporan & foto tersimpan!', 'info');
                 document.getElementById('distributionForm').reset();
                 isUserEditingDate = false;
                 updateLiveInputDate();
@@ -736,7 +782,7 @@
                 loadHistory();
 
                 // 2. Kirim Notifikasi WA
-                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
+                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Tersimpan di Sistem.`;
                 sendWhatsAppNotification(waMessage);
 
                 // 3. Sinkronisasi di Latar Belakang (Background Sync) ke Google Drive
@@ -760,11 +806,11 @@
 
                     try {
                         let payloadFiles = [];
-                        for (let item of tempFiles) {
+                        for (let item of finalFilesList) {
                             payloadFiles.push({
                                 name: item.name,
-                                mimeType: item.mimeType,
-                                bytes: item.bytes
+                                mimeType: item.mimeType || 'image/jpeg',
+                                bytes: await fileToBase64Payload(item)
                             });
                         }
 
@@ -789,7 +835,7 @@
                                 files: resData.files || [],
                                 syncStatus: 'synced'
                             });
-                            showNotification('Foto & Arsip berhasil Disimpan ke Sistem 100%!', 'success');
+                            showNotification('Foto & Arsip berhasil Di simpan 100%!', 'success');
                         } else {
                             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                             await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
@@ -925,7 +971,7 @@
                         filesHtml += `
                             <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border border-slate-300 cursor-pointer relative group" onclick="openModal('${modalUrl}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
                                 <img src="${thumbUrl}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23888\' stroke-width=\'2\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5-11 11\'/></svg>';">
-                                ${f.isTemp && report.syncStatus !== 'failed' ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Lokal</span>' : ''}
+                                ${f.isTemp && report.syncStatus !== 'failed' ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Offline</span>' : ''}
                             </div>
                         `;
                     });
