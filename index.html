@@ -48,10 +48,10 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Toast Notification Container (Diperbesar & Ditingkatkan Tampilannya) -->
+    <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-3 w-11/12 max-w-lg pointer-events-none"></div>
 
-    <!-- Modal Konfirmasi Profesional (Pengganti confirm bawaan) -->
+    <!-- Modal Konfirmasi Profesional -->
     <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border-t-4 border-red-500 text-center animate-fade-in">
             <div class="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold shadow-inner">
@@ -183,7 +183,7 @@
                         <input type="datetime-local" id="activityDate" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
                     </div>
 
-                    <!-- Dokumentasi (Opsional / Tidak Wajib Semua) -->
+                    <!-- Dokumentasi -->
                     <div class="space-y-3 pt-2 border-t">
                         <p class="text-[11px] text-slate-500 italic">Lampiran foto bersifat opsional (dapat memilih lebih dari 1 foto).</p>
                         <div>
@@ -220,7 +220,7 @@
                     </div>
                 </div>
 
-                <!-- Filter Panel: Rentang Tanggal & Pilih Instansi -->
+                <!-- Filter Panel -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     <div>
                         <label class="block font-semibold text-slate-600 mb-1">Dari Tanggal</label>
@@ -283,7 +283,7 @@
         </main>
     </div>
 
-    <!-- Modal Detail Foto (Pratinjau Jelas tanpa Pengalihan Link) -->
+    <!-- Modal Detail Foto -->
     <div id="imageModal" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="relative bg-white rounded-2xl max-w-2xl w-full p-5 flex flex-col items-center shadow-2xl">
             <button onclick="closeModal()" class="absolute top-3 right-3 bg-slate-100 hover:bg-slate-200 text-slate-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition">✕</button>
@@ -337,7 +337,7 @@
             cancelBtn.addEventListener('click', handleCancel);
         }
 
-        // Cek sesi login tersimpan di localStorage (kadaluarsa setelah 1 minggu / 7 hari)
+        // Cek sesi login tersimpan
         window.addEventListener('DOMContentLoaded', () => {
             const savedSession = localStorage.getItem('sppg_session');
             const sessionTime = localStorage.getItem('sppg_session_time');
@@ -371,7 +371,6 @@
             loadHistory();
         }
 
-        // PERBAIKAN 1: Format tanggal live otomatis untuk input datetime-local
         function updateLiveInputDate() {
             if (!isUserEditingDate) {
                 const dateInput = document.getElementById('activityDate');
@@ -383,7 +382,6 @@
             }
         }
 
-        // Deteksi jika user memilih tanggal manual secara sadar
         document.getElementById('activityDate').addEventListener('focus', () => {
             isUserEditingDate = true;
         });
@@ -391,7 +389,6 @@
             isUserEditingDate = true;
         });
 
-        // Live Clock & Live Input Date setiap detik
         setInterval(() => {
             const now = new Date();
             const clockEl = document.getElementById('liveClock');
@@ -401,7 +398,6 @@
             updateLiveInputDate();
         }, 1000);
 
-        // Notifikasi Menonjol & Keren (Besar & Tampak Jelas di Atas Layar)
         function showNotification(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -443,7 +439,6 @@
             }, 4500);
         }
 
-        // Network Speed Indicator Checker
         async function checkNetworkSpeed() {
             const netDot = document.getElementById('netDot');
             const netText = document.getElementById('netText');
@@ -471,13 +466,11 @@
         setInterval(checkNetworkSpeed, 10000);
         checkNetworkSpeed();
 
-        // Toggle Password Visibility
         function togglePassword() {
             const passInput = document.getElementById('loginPass');
             passInput.type = passInput.type === 'password' ? 'text' : 'password';
         }
 
-        // Login Handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const u = document.getElementById('loginUser').value.trim();
@@ -513,7 +506,6 @@
             document.getElementById('loginForm').reset();
         }
 
-        // Kirim WhatsApp via Fonnte API
         function sendWhatsAppNotification(message) {
             const formData = new URLSearchParams();
             formData.append('target', FONNTE_TARGET);
@@ -527,7 +519,6 @@
             }).catch(err => console.log('WA notification error', err));
         }
 
-        // Helper fungsi konversi URL / Blob ke Base64 (Mendukung upload ulang foto)
         async function fileToBase64Payload(item) {
             if (item.bytes) return item.bytes;
             if (item.url) {
@@ -547,7 +538,7 @@
             return null;
         }
 
-        // PERBAIKAN 2: Kirim Ulang Laporan yang Gagal Beserta Fotonya
+        // Kirim Ulang Laporan yang Gagal (Timeout 1 menit / 60 detik)
         async function resendReport(reportKey) {
             if (isSyncing) {
                 showNotification('Tunggu Sebentar, proses lain sedang berjalan', 'error');
@@ -563,26 +554,27 @@
             const submitBtn = document.getElementById('submitBtn');
             isSyncing = true;
             submitBtn.disabled = true;
-            submitBtn.innerText = "Sedang Proses..";
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+            submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
             await window.dbUpdate(updatedReportRef, { syncStatus: 'syncing' });
-            showNotification('Proses pengiriman ulang beserta foto dimulai...', 'info');
+            showNotification('Proses pengiriman ulang ke Sistem dimulai...', 'info');
             loadHistory();
 
             let isTimedOut = false;
+            // Batas waktu maksimal 1 menit (60000 ms)
             const timeoutTimer = setTimeout(async () => {
                 isTimedOut = true;
                 isSyncing = false;
                 submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                 submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
 
                 await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                showNotification('Gagal terkirim ulang (Waktu habis 15s). wajib kirim ulang', 'error');
+                showNotification('Proses Kirim gagal (Lebih dari 1 menit). Harus diulangi!', 'error');
                 loadHistory();
-            }, 15000);
+            }, 60000);
 
             try {
                 let payloadFiles = [];
@@ -620,34 +612,34 @@
                         files: resData.files || [],
                         syncStatus: 'synced'
                     });
-                    showNotification('Foto & Arsip berhasil Disimpan 100%!', 'success');
+                    showNotification('Foto berhasil Disimpan Ke sistem 100%!', 'success');
                 } else {
                     await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                    showNotification('Gagal terkirim ulang: wajib kirim ulang', 'error');
+                    showNotification('Proses Kirim gagal: Harus diulangi!', 'error');
                 }
             } catch (err) {
                 if (isTimedOut) return;
                 clearTimeout(timeoutTimer);
                 console.error('Error background sync:', err);
                 await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                showNotification('Proses gagal/terputus. Wajib kirim ulang!', 'error');
+                showNotification('Proses gagal/terputus. Harus diulangi!', 'error');
             } finally {
                 if (!isTimedOut) {
                     isSyncing = false;
                     submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                     submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
                     loadHistory();
                 }
             }
         }
 
-        // Form Submit & Upload Multi Foto ke Drive & Firebase
+        // Form Submit & Process Background Sync
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             if (isSyncing) {
-                showNotification('Tunggu Sebentar, proses sinkronisasi sedang berjalan', 'error');
+                showNotification('Tunggu Sebentar, proses Kirim sedang berjalan', 'error');
                 return;
             }
 
@@ -677,8 +669,9 @@
             
             isSyncing = true;
             submitBtn.disabled = true;
-            submitBtn.innerText = "Sedang Proses..";
-            submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+            // Teks tombol diperbarui sesuai permintaan
+            submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
                 let tempFiles = [];
@@ -689,7 +682,7 @@
                         const file = fileList[i];
                         const name = `[${prefix}_${i+1}]_${file.name}`;
                         
-                        // Konversi ke base64 agar foto tetap tersimpan bila gagal & perlu resend
+                        // Membaca gambar offline ke format base64
                         const base64Data = await new Promise((resolve) => {
                             const reader = new FileReader();
                             reader.onload = e => resolve(e.target.result);
@@ -716,7 +709,7 @@
                 await processFiles(fRecvFiles, 'TERIMA');
                 await processFiles(fTakeFiles, 'AMBIL');
 
-                // 1. Simpan laporan awal ke Firebase
+                // 1. Simpan laporan langsung secara offline/lokal ke Firebase (Langsung muncul di web UI)
                 const reportRef = window.dbRef(window.db, 'reports');
                 const newReportRef = window.dbPush(reportRef);
                 const reportKey = newReportRef.key;
@@ -735,7 +728,7 @@
 
                 await window.dbSet(newReportRef, reportPayload);
 
-                showNotification('Laporan & foto sedang dikirim!', 'info');
+                showNotification('Laporan & foto disimpan. Sedang Dikirim...', 'info');
                 document.getElementById('distributionForm').reset();
                 isUserEditingDate = false;
                 updateLiveInputDate();
@@ -746,23 +739,24 @@
                 const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil diunggah ke Sistem.`;
                 sendWhatsAppNotification(waMessage);
 
-                // 3. Proses Pengunggahan ke Google Drive
+                // 3. Sinkronisasi di Latar Belakang (Background Sync) ke Google Drive
                 (async () => {
                     let isTimedOut = false;
 
+                    // Maksimal 1 menit (60.000 ms)
                     const timeoutTimer = setTimeout(async () => {
                         isTimedOut = true;
                         isSyncing = false; 
                         submitBtn.disabled = false;
-                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                         submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
 
                         const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                         await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
 
-                        showNotification('Gagal terkirim (Waktu habis 15s). wajib kirim ulang!', 'error');
+                        showNotification('Proses kirim gagal (Lebih dari 1 menit). Harus diulangi!', 'error');
                         loadHistory();
-                    }, 15000);
+                    }, 60000);
 
                     try {
                         let payloadFiles = [];
@@ -795,11 +789,11 @@
                                 files: resData.files || [],
                                 syncStatus: 'synced'
                             });
-                            showNotification('Foto & Arsip berhasil Disimpan 100%!', 'success');
+                            showNotification('Foto & Arsip berhasil Disimpan ke Sistem 100%!', 'success');
                         } else {
                             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                             await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                            showNotification('Gagal terkirim: wajib kirim ulang!', 'error');
+                            showNotification('Proses Kirim gagal: Harus diulangi!', 'error');
                         }
                     } catch (err) {
                         if (isTimedOut) return;
@@ -808,12 +802,12 @@
                         
                         const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
                         await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                        showNotification('Proses gagal/terputus. Wajib kirim ulang!', 'error');
+                        showNotification('Proses gagal/terputus. Harus diulangi!', 'error');
                     } finally {
                         if (!isTimedOut) {
                             isSyncing = false;
                             submitBtn.disabled = false;
-                            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                             submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
                             loadHistory();
                         }
@@ -823,7 +817,7 @@
             } catch (err) {
                 isSyncing = false;
                 submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                 submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
 
                 const errorMsg = err instanceof ProgressEvent ? 'Gagal membaca file foto' : (err.message || 'Terjadi kesalahan pada sistem');
@@ -831,7 +825,7 @@
             }
         });
 
-        // Load History from Firebase & Drive
+        // Load History
         function loadHistory() {
             const loader = document.getElementById('loadingIndicator');
             const grid = document.getElementById('galleryGrid');
@@ -867,12 +861,15 @@
                     isSyncing = true;
                     if (submitBtn) {
                         submitBtn.disabled = true;
-                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+                        submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
+                        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
                     }
                 } else if (!isSyncing) {
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                        submitBtn.innerText = "Kirim Laporan";
+                        submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                     }
                 }
 
@@ -898,19 +895,19 @@
                 const card = document.createElement('div');
                 card.className = "bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between shadow-sm hover:shadow transition relative";
                 
-                // Indikator Sinkronisasi
+                // Indikator Status Sinkronisasi
                 let syncBadge = '';
                 if (report.syncStatus === 'synced' || (!report.syncStatus && report.files && report.files.length > 0 && !report.files[0].isTemp)) {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold border border-emerald-300" title="Proses Berhasil">
                         ✓ Berhasil Terkirim
                     </span>`;
                 } else if (report.syncStatus === 'syncing' || (report.files && report.files.some(f => f.isTemp) && report.syncStatus !== 'failed')) {
-                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse" title="Proses Mengunggah">
+                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse" title="Proses Kirim ke Sistem">
                         🔄 Sedang Dikirim...
                     </span>`;
                 } else if (report.syncStatus === 'failed') {
                     syncBadge = `<button type="button" onclick="resendReport('${report.firebaseId}')" class="inline-flex items-center gap-1 text-[10px] bg-red-100 text-red-800 hover:bg-red-200 px-2.5 py-1 rounded-full font-bold border border-red-300 transition cursor-pointer shadow-sm active:scale-95" title="Klik untuk mencoba kirim ulang">
-                        ❌ Gagal, wajib kirim ulang
+                        ❌ Proses Kirim Gagal (Ulangi)
                     </button>`;
                 } else {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">
@@ -928,7 +925,7 @@
                         filesHtml += `
                             <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border border-slate-300 cursor-pointer relative group" onclick="openModal('${modalUrl}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
                                 <img src="${thumbUrl}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23888\' stroke-width=\'2\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5-11 11\'/></svg>';">
-                                ${f.isTemp && report.syncStatus !== 'failed' ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Sync</span>' : ''}
+                                ${f.isTemp && report.syncStatus !== 'failed' ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Lokal</span>' : ''}
                             </div>
                         `;
                     });
@@ -987,7 +984,6 @@
             });
         }
 
-        // Fungsi Filter Rentang Tanggal & Instansi
         function applyFilters() {
             if (!window.allReportsCache) return;
             
@@ -1019,7 +1015,6 @@
         document.getElementById('filterEndDate').addEventListener('change', applyFilters);
         document.getElementById('filterInstitution').addEventListener('change', applyFilters);
 
-        // Pratinjau Foto & Tombol Unduh Foto
         function openModal(url, name, caption, fileId, firebaseId) {
             document.getElementById('modalImg').src = url;
             document.getElementById('modalCaption').innerText = caption;
