@@ -311,6 +311,64 @@
         let isSyncing = false; // Status global proses sinkronisasi
         let isUserEditingDate = false; // Flag pelacak apakah user sedang memilih tanggal manual
 
+        // Simpan template asli dari opsi select institution agar bisa direstore dengan utuh
+        let originalInstitutionOptionsHtml = "";
+        window.addEventListener('DOMContentLoaded', () => {
+            const instSelect = document.getElementById('institution');
+            if (instSelect) {
+                originalInstitutionOptionsHtml = instSelect.innerHTML;
+            }
+        });
+
+        // Fungsi memperbarui opsi form institution berdasarkan tanggal kegiatan yang dipilih
+        function updateAvailableInstitutions() {
+            const instSelect = document.getElementById('institution');
+            const rawDateVal = document.getElementById('activityDate').value;
+            if (!instSelect || !rawDateVal) return;
+
+            const selectedDateKey = rawDateVal.slice(0, 10); // Format YYYY-MM-DD
+            const currentSelectedValue = instSelect.value;
+
+            // Restore HTML asli terlebih dahulu agar semua pilihan tampil kembali
+            instSelect.innerHTML = originalInstitutionOptionsHtml;
+
+            // Kumpulkan instansi yang sudah di-upload khusus pada tanggal yang sedang dipilih
+            let uploadedInstitutionsForDate = new Set();
+            if (window.allReportsCache && window.allReportsCache.length > 0) {
+                window.allReportsCache.forEach(r => {
+                    const rDateKey = r.rawDate ? r.rawDate.slice(0, 10) : '';
+                    if (rDateKey === selectedDateKey && r.institution) {
+                        uploadedInstitutionsForDate.add(r.institution);
+                    }
+                });
+            }
+
+            // Sembunyikan opsi yang sudah di-upload pada tanggal tersebut
+            const optgroups = instSelect.querySelectorAll('optgroup');
+            optgroups.forEach(group => {
+                group.style.display = ''; // Reset display optgroup
+                const options = group.querySelectorAll('option');
+                let visibleCount = 0;
+                options.forEach(opt => {
+                    if (uploadedInstitutionsForDate.has(opt.value)) {
+                        opt.remove();
+                    } else {
+                        visibleCount++;
+                    }
+                });
+                if (visibleCount === 0) {
+                    group.style.display = 'none';
+                }
+            });
+
+            // Pertahankan pilihan jika masih valid, atau reset ke default
+            if (currentSelectedValue && !uploadedInstitutionsForDate.has(currentSelectedValue)) {
+                instSelect.value = currentSelectedValue;
+            } else {
+                instSelect.value = "";
+            }
+        }
+
         // Helper Modal Konfirmasi Kustom
         function showConfirm(message, onConfirm) {
             const modal = document.getElementById('confirmModal');
@@ -379,6 +437,7 @@
                     const now = new Date();
                     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                     dateInput.value = now.toISOString().slice(0, 16);
+                    updateAvailableInstitutions();
                 }
             }
         }
@@ -388,6 +447,7 @@
         });
         document.getElementById('activityDate').addEventListener('change', () => {
             isUserEditingDate = true;
+            updateAvailableInstitutions();
         });
 
         setInterval(() => {
@@ -889,6 +949,7 @@
                 if (!data) {
                     empty.classList.remove('hidden');
                     window.allReportsCache = [];
+                    updateAvailableInstitutions();
                     return;
                 }
 
@@ -921,6 +982,7 @@
                 }
 
                 window.allReportsCache = reportsArray;
+                updateAvailableInstitutions();
                 applyFilters();
             }, { onlyOnce: true });
         }
