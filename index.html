@@ -222,14 +222,10 @@
                 </div>
 
                 <!-- Filter Panel -->
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     <div>
-                        <label class="block font-semibold text-slate-600 mb-1">Dari Tanggal</label>
-                        <input type="date" id="filterStartDate" class="w-full border border-slate-300 rounded-lg p-1.5 bg-white focus:ring-1 focus:ring-tealAccent focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-slate-600 mb-1">Sampai Tanggal</label>
-                        <input type="date" id="filterEndDate" class="w-full border border-slate-300 rounded-lg p-1.5 bg-white focus:ring-1 focus:ring-tealAccent focus:outline-none">
+                        <label class="block font-semibold text-slate-600 mb-1">Pilih Tanggal Arsip</label>
+                        <input type="date" id="filterSingleDate" class="w-full border border-slate-300 rounded-lg p-1.5 bg-white focus:ring-1 focus:ring-tealAccent focus:outline-none">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-600 mb-1">Pilih Instansi</label>
@@ -318,6 +314,13 @@
             const instSelect = document.getElementById('institution');
             if (instSelect) {
                 originalInstitutionOptionsHtml = instSelect.innerHTML;
+            }
+            
+            // Set tanggal live otomatis pada input tanggal arsip
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const archiveDateInput = document.getElementById('filterSingleDate');
+            if (archiveDateInput) {
+                archiveDateInput.value = todayStr;
             }
         });
 
@@ -425,7 +428,7 @@
                 document.getElementById('roleSubtitle').innerText = "Menampilkan seluruh arsip laporan & identitas pengunggah dari tim dengan fitur pencarian foto.";
             } else {
                 document.getElementById('sectionTitle').innerHTML = '<span>📋</span> Riwayat Laporan Dokumentasi PM';
-                document.getElementById('roleSubtitle').innerText = `Menampilkan daftar riwayat nama PM yang sudah Anda unggah.`;
+                document.getElementById('roleSubtitle').innerText = `Menampilkan daftar riwayat seluruh laporan kegiatan PM.`;
             }
 
             loadHistory();
@@ -444,6 +447,16 @@
                         dateInput.value = newTimeString;
                         updateAvailableInstitutions();
                     }
+                }
+            }
+
+            // Otomatis memperbarui input filter tanggal arsip sesuai hari ini secara live
+            const archiveDateInput = document.getElementById('filterSingleDate');
+            if (archiveDateInput && !archiveDateInput.dataset.userModified) {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                if (archiveDateInput.value !== todayStr) {
+                    archiveDateInput.value = todayStr;
+                    applyFilters();
                 }
             }
         }
@@ -992,13 +1005,8 @@
                     ...data[key]
                 }));
 
-                // Simpan seluruh data tanpa filter role untuk sinkronisasi pilihan instansi
+                // Simpan seluruh data tanpa filter role untuk sinkronisasi pilihan instansi dan melihat arsip laporan tim
                 rawGlobalReports = reportsArray;
-
-                // Saring riwayat yang tampil berdasarkan role user login
-                if (currentUser && currentUser.name !== 'Admin') {
-                    reportsArray = reportsArray.filter(r => r.uploader === currentUser.name);
-                }
 
                 const hasSyncing = reportsArray.some(r => r.syncStatus === 'syncing');
                 const submitBtn = document.getElementById('submitBtn');
@@ -1103,6 +1111,7 @@
                         </div>
                     `;
                 } else {
+                    // Untuk User Biasa: Hanya menampilkan teks laporan saja (tanpa foto)
                     contentHtml = `
                         <div>
                             <div class="flex justify-between items-start mb-1 gap-1">
@@ -1116,7 +1125,6 @@
                                 <p>📦 Kirim: <strong class="text-slate-800">${report.qtySent} porsi</strong></p>
                                 <p>↩️ Kembali: <strong class="text-slate-800">${report.qtyReturned} porsi</strong></p>
                             </div>
-                            ${filesHtml}
                         </div>
                     `;
                 }
@@ -1138,19 +1146,17 @@
         function applyFilters() {
             if (!window.allReportsCache) return;
             
-            const startDate = document.getElementById('filterStartDate').value;
-            const endDate = document.getElementById('filterEndDate').value;
+            const selectedDate = document.getElementById('filterSingleDate').value;
             const selectedInst = document.getElementById('filterInstitution').value;
 
             let filtered = window.allReportsCache.filter(r => {
                 let matchInst = !selectedInst || r.institution === selectedInst;
                 let matchDate = true;
 
-                if (startDate || endDate) {
+                if (selectedDate) {
                     let rDate = r.rawDate ? r.rawDate.slice(0, 10) : '';
                     if (rDate) {
-                        if (startDate && rDate < startDate) matchDate = false;
-                        if (endDate && rDate > endDate) matchDate = false;
+                        if (rDate !== selectedDate) matchDate = false;
                     } else {
                         matchDate = false;
                     }
@@ -1162,8 +1168,10 @@
             renderGallery(filtered);
         }
 
-        document.getElementById('filterStartDate').addEventListener('change', applyFilters);
-        document.getElementById('filterEndDate').addEventListener('change', applyFilters);
+        document.getElementById('filterSingleDate').addEventListener('change', function() {
+            this.dataset.userModified = "true";
+            applyFilters();
+        });
         document.getElementById('filterInstitution').addEventListener('change', applyFilters);
 
         function openModal(url, name, caption, fileId, firebaseId) {
@@ -1217,4 +1225,3 @@
     </script>
 </body>
 </html>
-
