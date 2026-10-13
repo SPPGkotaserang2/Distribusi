@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG 2</title>
+    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG SERANG SERANG 2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -70,10 +70,11 @@
     <div id="loginSection" class="fixed inset-0 bg-teal-900/90 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-4 border-tealAccent">
             <div class="text-center mb-6">
+                <!-- Logo lokal logo.png -->
                 <div class="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-teal-100 overflow-hidden">
                     <img src="logo.png" alt="Logo SPPG" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23008080\' stroke-width=\'2\'><path d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/></svg>';">
                 </div>
-                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG 2</h2>
+                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG SERANG SERANG 2</h2>
                 <p class="text-xs text-slate-500 mt-1">Sistem Laporan Distribusi Makanan Bergizi Gratis</p>
             </div>
             <form id="loginForm" class="space-y-4">
@@ -93,13 +94,14 @@
                 <button type="submit" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition">Masuk Sistem</button>
             </form>
             <div class="mt-6 text-center text-[11px] text-slate-400 border-t pt-4">
-                SISTEM RESMI SPPG KOTA SERANG 2
+                SISTEM RESMI SPPG KOTA SERANG SERANG SERANG 2
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
+    <!-- MAIN APP CONTAINER (Hidden until login) -->
     <div id="appContainer" class="hidden flex flex-col min-h-screen">
+        <!-- Header -->
         <header class="bg-tealAccent text-white shadow-md py-3 px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center overflow-hidden border border-white/20">
@@ -107,10 +109,11 @@
                 </div>
                 <div>
                     <h1 id="welcomeText" class="text-base font-bold">Selamat Datang</h1>
-                    <p class="text-xs text-teal-100">SPPG KOTA SERANG 2 — Logistik & Distribusi</p>
+                    <p class="text-xs text-teal-100">SPPG KOTA SERANG SERANG SERANG 2 — Logistik & Distribusi</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
+                <!-- Indikator Kecepatan Jaringan -->
                 <div id="netStatus" class="text-xs bg-teal-800/60 px-3 py-1.5 rounded-full border border-teal-600 flex items-center gap-1.5">
                     <span id="netDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span id="netText">Memeriksa Jaringan...</span>
@@ -120,6 +123,7 @@
             </div>
         </header>
 
+        <!-- Content Area -->
         <main class="flex-grow container mx-auto p-4 md:p-6 max-w-7xl grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- KOLOM 1: FORMULIR INPUT -->
@@ -147,9 +151,10 @@
                                 <option value="SMP ISLAM AL MUNAWAROH">SMP ISLAM AL MUNAWAROH</option>
                                 <option value="SMP BAIT ET TAUHID">SMP BAIT ET TAUHID</option>
                             </optgroup>
-                            <optgroup label="4. SMA">
+                            <optgroup label="4. SMA / SMK">
                                 <option value="SMA BAIT ET TAUHID">SMA BAIT ET TAUHID</option>
                                 <option value="SMK INTAN HUSADA">SMK INTAN HUSADA</option>
+                                <option value="SMKS PGRI 3 KOTA SERANG.">SMKS PGRI 3 KOTA SERANG.</option>
                                 <option value="SMKS PGRI 3 KOTA SERANG">SMKS PGRI 3 KOTA SERANG</option>
                             </optgroup>
                             <optgroup label="5. POSYANDU">
@@ -184,7 +189,7 @@
                     <div class="space-y-3 pt-2 border-t">
                         <p class="text-[11px] text-slate-500 italic"></p>
                         <div>
-                            <label class="block font-medium text-slate-700 text-xs mb-1">1. Pengiriman </label>
+                            <label class="block font-medium text-slate-700 text-xs mb-1">1. Pengiriman</label>
                             <input type="file" id="photoSent" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                         <div>
@@ -242,9 +247,10 @@
                                 <option value="SMP ISLAM AL MUNAWAROH">SMP ISLAM AL MUNAWAROH</option>
                                 <option value="SMP BAIT ET TAUHID">SMP BAIT ET TAUHID</option>
                             </optgroup>
-                            <optgroup label="4. SMA">
+                            <optgroup label="4. SMA / SMK">
                                 <option value="SMA BAIT ET TAUHID">SMA BAIT ET TAUHID</option>
                                 <option value="SMK INTAN HUSADA">SMK INTAN HUSADA</option>
+                                <option value="SMKS PGRI 3 KOTA SERANG.">SMKS PGRI 3 KOTA SERANG.</option>
                                 <option value="SMKS PGRI 3 KOTA SERANG">SMKS PGRI 3 KOTA SERANG</option>
                             </optgroup>
                             <optgroup label="5. POSYANDU">
@@ -267,9 +273,12 @@
                 </div>
 
                 <!-- Grid Data -->
-                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1"></div>
+                <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto max-h-[650px] p-1">
+                    <!-- Dinamis dari Firebase & Drive -->
+                </div>
                 <div id="emptyState" class="text-center py-16 text-slate-400 text-sm hidden">Belum ada laporan atau arsip tersimpan.</div>
             </section>
+
         </main>
     </div>
 
@@ -297,16 +306,17 @@
         const FONNTE_TARGET = "6283111399112";
 
         let currentUser = null;
-        let isSyncing = false;
-        let isUserEditingDate = false;
-        let rawGlobalReports = [];
-        let originalInstitutionOptionsHtml = "";
+        let isSyncing = false; 
+        let isUserEditingDate = false; 
+        let rawGlobalReports = []; 
 
+        let originalInstitutionOptionsHtml = "";
         window.addEventListener('DOMContentLoaded', () => {
             const instSelect = document.getElementById('institution');
             if (instSelect) {
                 originalInstitutionOptionsHtml = instSelect.innerHTML;
             }
+            
             const todayStr = new Date().toISOString().slice(0, 10);
             const archiveDateInput = document.getElementById('filterSingleDate');
             if (archiveDateInput) {
@@ -319,7 +329,7 @@
             const rawDateVal = document.getElementById('activityDate').value;
             if (!instSelect || !rawDateVal) return;
 
-            const selectedDateKey = rawDateVal.slice(0, 10);
+            const selectedDateKey = rawDateVal.slice(0, 10); 
             const currentSelectedValue = instSelect.value;
 
             instSelect.innerHTML = originalInstitutionOptionsHtml;
@@ -336,7 +346,7 @@
 
             const optgroups = instSelect.querySelectorAll('optgroup');
             optgroups.forEach(group => {
-                group.style.display = '';
+                group.style.display = ''; 
                 const options = group.querySelectorAll('option');
                 let visibleCount = 0;
                 options.forEach(opt => {
@@ -424,6 +434,7 @@
                     const now = new Date();
                     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                     const newTimeString = now.toISOString().slice(0, 16);
+                    
                     if (dateInput.value !== newTimeString) {
                         dateInput.value = newTimeString;
                         updateAvailableInstitutions();
@@ -441,7 +452,9 @@
             }
         }
 
-        document.getElementById('activityDate').addEventListener('focus', () => { isUserEditingDate = true; });
+        document.getElementById('activityDate').addEventListener('focus', () => {
+            isUserEditingDate = true;
+        });
         document.getElementById('activityDate').addEventListener('change', () => {
             isUserEditingDate = true;
             updateAvailableInstitutions();
@@ -476,14 +489,21 @@
 
             toast.className = `pointer-events-auto flex items-center gap-4 p-4 rounded-2xl text-white shadow-2xl border-2 transition-all duration-500 transform -translate-y-10 opacity-0 scale-95 ${bgClass}`;
             toast.innerHTML = `
-                <div class="text-3xl bg-white/20 p-2.5 rounded-xl flex items-center justify-center shrink-0">${icon}</div>
+                <div class="text-3xl bg-white/20 p-2.5 rounded-xl flex items-center justify-center shrink-0">
+                    ${icon}
+                </div>
                 <div class="flex-grow">
                     <h4 class="font-extrabold text-sm tracking-wider uppercase text-white/90 mb-0.5">${title}</h4>
                     <p class="text-xs font-medium leading-snug">${message}</p>
                 </div>
             `;
+            
             container.appendChild(toast);
-            requestAnimationFrame(() => { toast.classList.remove('-translate-y-10', 'opacity-0', 'scale-95'); });
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-10', 'opacity-0', 'scale-95');
+            });
+
             setTimeout(() => {
                 toast.classList.add('-translate-y-10', 'opacity-0', 'scale-95');
                 setTimeout(() => toast.remove(), 500);
@@ -544,6 +564,7 @@
                 currentUser = validRole;
                 localStorage.setItem('sppg_session', JSON.stringify(validRole));
                 localStorage.setItem('sppg_session_time', Date.now().toString());
+
                 initAppUI();
             } else {
                 showNotification('Username atau Password salah!', 'error');
@@ -554,6 +575,7 @@
             currentUser = null;
             localStorage.removeItem('sppg_session');
             localStorage.removeItem('sppg_session_time');
+
             document.getElementById('loginSection').classList.remove('hidden');
             document.getElementById('appContainer').classList.add('hidden');
             document.getElementById('loginForm').reset();
@@ -591,7 +613,7 @@
             return null;
         }
 
-        // FUNGSI KOMPRESI & RESIZE GAMBAR AMAN DI SEMUA PERANGKAT (ANDROID 5+ HINGGA SEKARANG)
+        // Fungsi Kompresi Gambar Aman untuk Semua Perangkat (Android 5+ hingga Sekarang)
         function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -621,12 +643,10 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // Ekspor ke format JPEG terkompresi
                         const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
                         resolve(compressedDataUrl);
                     };
                     img.onerror = () => {
-                        // Fallback jika gagal parse gambar, kembalikan data mentah reader
                         resolve(event.target.result);
                     };
                 };
@@ -692,6 +712,7 @@
 
             try {
                 let payloadFiles = [];
+
                 if (report.files && report.files.length > 0) {
                     for (let item of report.files) {
                         const b64 = await fileToBase64Payload(item);
@@ -753,6 +774,7 @@
             e.preventDefault();
 
             const isOfflineUser = currentUser && (currentUser.name === 'Jimi Kurniawan' || currentUser.name === 'Wiranto Galuh Saputra');
+
             const netState = await checkNetworkSpeed();
             if (!isOfflineUser && (netState === 'slow' || netState === 'offline')) {
                 showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
@@ -789,7 +811,7 @@
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Sedang Di Proses...";
+            submitBtn.innerText = "Diproses...";
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
@@ -800,7 +822,6 @@
                         const file = fileList[i];
                         const name = `[${prefix}_${Date.now()}_${i+1}]_${file.name}`;
                         
-                        // Kompres gambar agar ukuran RAM & payload aman di HP lama/baru
                         const compressedBase64 = await compressImage(file, 1200, 1200, 0.7);
 
                         tempFiles.push({
@@ -885,7 +906,7 @@
                     const countdownInterval = setInterval(() => {
                         timeLeft--;
                         if (timeLeft > 0 && isSyncing) {
-                            submitBtn.innerText = `Menyinkronkan data... (${timeLeft}s)`;
+                            submitBtn.innerText = `Tunggu Sebentar... (${timeLeft}s)`;
                         } else {
                             clearInterval(countdownInterval);
                         }
