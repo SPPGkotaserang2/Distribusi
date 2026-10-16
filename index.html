@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG SERANG SERANG 2</title>
+    <title>Sistem Distribusi Makanan Bergizi Gratis - SPPG KOTA SERANG 2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -70,11 +70,10 @@
     <div id="loginSection" class="fixed inset-0 bg-teal-900/90 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border-t-4 border-tealAccent">
             <div class="text-center mb-6">
-                <!-- Logo lokal logo.png -->
                 <div class="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-teal-100 overflow-hidden">
                     <img src="logo.png" alt="Logo SPPG" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23008080\' stroke-width=\'2\'><path d=\'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5\'/></svg>';">
                 </div>
-                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG SERANG SERANG 2</h2>
+                <h2 class="text-xl font-bold text-slate-950">SPPG KOTA SERANG 2</h2>
                 <p class="text-xs text-slate-500 mt-1">Sistem Laporan Distribusi Makanan Bergizi Gratis</p>
             </div>
             <form id="loginForm" class="space-y-4">
@@ -94,12 +93,12 @@
                 <button type="submit" class="w-full bg-tealAccent text-white font-semibold py-2.5 rounded-lg shadow hover:bg-teal-700 transition">Masuk Sistem</button>
             </form>
             <div class="mt-6 text-center text-[11px] text-slate-400 border-t pt-4">
-                SISTEM RESMI SPPG KOTA SERANG SERANG SERANG 2
+                SISTEM RESMI SPPG KOTA SERANG 2 — <span id="currentYearText"></span>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER (Hidden until login) -->
+    <!-- MAIN APP CONTAINER -->
     <div id="appContainer" class="hidden flex flex-col min-h-screen">
         <!-- Header -->
         <header class="bg-tealAccent text-white shadow-md py-3 px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
@@ -109,7 +108,7 @@
                 </div>
                 <div>
                     <h1 id="welcomeText" class="text-base font-bold">Selamat Datang</h1>
-                    <p class="text-xs text-teal-100">SPPG KOTA SERANG SERANG SERANG 2 — Logistik & Distribusi</p>
+                    <p class="text-xs text-teal-100">SPPG KOTA SERANG 2 — Logistik & Distribusi</p>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -181,24 +180,24 @@
                     </div>
 
                     <div>
-                        <label class="block font-medium text-slate-700 mb-1">Tanggal & Waktu Kegiatan</label>
+                        <label class="block font-medium text-slate-700 mb-1">Tanggal & Waktu Kegiatan (Update Live)</label>
                         <input type="datetime-local" id="activityDate" required class="w-full border-slate-300 rounded-lg p-2 border focus:ring-2 focus:ring-tealAccent focus:outline-none">
                     </div>
 
-                    <!-- Dokumentasi -->
+                    <!-- Dokumentasi Foto (Multi-perangkat support: kamera langsung / galeri) -->
                     <div class="space-y-3 pt-2 border-t">
-                        <p class="text-[11px] text-slate-500 italic"></p>
+                        <p class="text-[11px] text-teal-700 font-medium"></p>
                         <div>
                             <label class="block font-medium text-slate-700 text-xs mb-1">1. Pengiriman</label>
-                            <input type="file" id="photoSent" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                            <input type="file" id="photoSent" accept="image/*" multiple capture="environment" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                         <div>
                             <label class="block font-medium text-slate-700 text-xs mb-1">2. Penerimaan</label>
-                            <input type="file" id="photoReceived" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                            <input type="file" id="photoReceived" accept="image/*" multiple capture="environment" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                         <div>
                             <label class="block font-medium text-slate-700 text-xs mb-1">3. Pengambilan</label>
-                            <input type="file" id="photoTaken" accept="image/*" multiple class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
+                            <input type="file" id="photoTaken" accept="image/*" multiple capture="environment" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                         </div>
                     </div>
 
@@ -299,7 +298,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT APLIKASI UTAMA -->
+    <!-- SCRIPT APLIKASI UTAMA YANG DIOPTIMALKAN -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwTgSlvDRzNtcv-UBp7ls1LN5EoutQrsKIDzPz1rI9T9k9ZOoitGMaGAEgYWbmc-RO/exec";
         const FONNTE_TOKEN = "N1L5tFSqGg2BJQVD42SC";
@@ -309,9 +308,10 @@
         let isSyncing = false; 
         let isUserEditingDate = false; 
         let rawGlobalReports = []; 
-
         let originalInstitutionOptionsHtml = "";
+
         window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('currentYearText').innerText = new Date().getFullYear();
             const instSelect = document.getElementById('institution');
             if (instSelect) {
                 originalInstitutionOptionsHtml = instSelect.innerHTML;
@@ -322,6 +322,21 @@
             if (archiveDateInput) {
                 archiveDateInput.value = todayStr;
             }
+
+            const savedSession = localStorage.getItem('sppg_session');
+            const sessionTime = localStorage.getItem('sppg_session_time');
+            
+            if (savedSession && sessionTime) {
+                const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+                if (Date.now() - parseInt(sessionTime) < oneWeekMs) {
+                    currentUser = JSON.parse(savedSession);
+                    initAppUI();
+                } else {
+                    localStorage.removeItem('sppg_session');
+                    localStorage.removeItem('sppg_session_time');
+                }
+            }
+            updateLiveInputDate();
         });
 
         function updateAvailableInstitutions() {
@@ -394,23 +409,6 @@
             cancelBtn.addEventListener('click', handleCancel);
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedSession = localStorage.getItem('sppg_session');
-            const sessionTime = localStorage.getItem('sppg_session_time');
-            
-            if (savedSession && sessionTime) {
-                const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
-                if (Date.now() - parseInt(sessionTime) < oneWeekMs) {
-                    currentUser = JSON.parse(savedSession);
-                    initAppUI();
-                } else {
-                    localStorage.removeItem('sppg_session');
-                    localStorage.removeItem('sppg_session_time');
-                }
-            }
-            updateLiveInputDate();
-        });
-
         function initAppUI() {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appContainer').classList.remove('hidden');
@@ -452,13 +450,14 @@
             }
         }
 
-        document.getElementById('activityDate').addEventListener('focus', () => {
-            isUserEditingDate = true;
-        });
-        document.getElementById('activityDate').addEventListener('change', () => {
-            isUserEditingDate = true;
-            updateAvailableInstitutions();
-        });
+        const actDateEl = document.getElementById('activityDate');
+        if (actDateEl) {
+            actDateEl.addEventListener('focus', () => { isUserEditingDate = true; });
+            actDateEl.addEventListener('change', () => { 
+                isUserEditingDate = true; 
+                updateAvailableInstitutions(); 
+            });
+        }
 
         setInterval(() => {
             const now = new Date();
@@ -484,7 +483,7 @@
             } else if (type === 'info') {
                 bgClass = 'bg-teal-700 border-teal-500';
                 icon = '🔄';
-                title = 'BERHASIL!';
+                title = 'INFORMASI';
             }
 
             toast.className = `pointer-events-auto flex items-center gap-4 p-4 rounded-2xl text-white shadow-2xl border-2 transition-all duration-500 transform -translate-y-10 opacity-0 scale-95 ${bgClass}`;
@@ -499,7 +498,6 @@
             `;
             
             container.appendChild(toast);
-            
             requestAnimationFrame(() => {
                 toast.classList.remove('-translate-y-10', 'opacity-0', 'scale-95');
             });
@@ -514,16 +512,15 @@
             const netDot = document.getElementById('netDot');
             const netText = document.getElementById('netText');
             try {
-                const startTime = new Date().getTime();
+                const startTime = Date.now();
                 await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
-                const endTime = new Date().getTime();
-                const duration = (endTime - startTime) / 1000;
+                const duration = (Date.now() - startTime) / 1000;
                 
-                if (duration < 0.3) {
+                if (duration < 0.4) {
                     netDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                    netText.innerText = "Jaringan Sangat Cepat";
+                    netText.innerText = "Jaringan Cepat";
                     return 'fast';
-                } else if (duration < 1.0) {
+                } else if (duration < 1.2) {
                     netDot.className = "w-2 h-2 rounded-full bg-yellow-400 animate-pulse";
                     netText.innerText = "Jaringan Stabil";
                     return 'stable';
@@ -538,7 +535,7 @@
                 return 'offline';
             }
         }
-        setInterval(checkNetworkSpeed, 10000);
+        setInterval(checkNetworkSpeed, 15000);
         checkNetworkSpeed();
 
         function togglePassword() {
@@ -564,7 +561,6 @@
                 currentUser = validRole;
                 localStorage.setItem('sppg_session', JSON.stringify(validRole));
                 localStorage.setItem('sppg_session_time', Date.now().toString());
-
                 initAppUI();
             } else {
                 showNotification('Username atau Password salah!', 'error');
@@ -613,9 +609,14 @@
             return null;
         }
 
-        // Fungsi Kompresi Gambar Aman untuk Semua Perangkat (Android 5+ hingga Sekarang)
-        function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) {
+        // Kompresi Gambar Sangat Aman untuk Perangkat Android 5+ s.d iPhone Sekarang
+        function compressImage(file, maxWidth = 1024, maxHeight = 1024, quality = 0.65) {
             return new Promise((resolve) => {
+                if (!file || !file.type.match(/image.*/)) {
+                    resolve(null);
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = (event) => {
@@ -637,14 +638,19 @@
                             }
                         }
 
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                        try {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
 
-                        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                        resolve(compressedDataUrl);
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                            resolve(compressedDataUrl);
+                        } catch (err) {
+                            // Fallback jika canvas tercemar (tainted) atau memori tidak cukup
+                            resolve(event.target.result);
+                        }
                     };
                     img.onerror = () => {
                         resolve(event.target.result);
@@ -658,13 +664,13 @@
 
         async function resendReport(reportKey) {
             const netState = await checkNetworkSpeed();
-            if (netState === 'slow' || netState === 'offline') {
-                showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
+            if (netState === 'offline') {
+                showNotification('Perangkat Anda dalam kondisi offline / tidak ada internet!', 'error');
                 return;
             }
 
             if (isSyncing) {
-                showNotification('Tunggu Sebentar, proses lain sedang berjalan', 'error');
+                showNotification('Tunggu sebentar, proses sinkronisasi lain sedang berjalan...', 'error');
                 return;
             }
 
@@ -681,16 +687,14 @@
 
             const updatedReportRef = window.dbRef(window.db, `reports/${reportKey}`);
             await window.dbUpdate(updatedReportRef, { syncStatus: 'syncing' });
-            showNotification('Proses pengiriman ulang ke Sistem dimulai...', 'info');
+            showNotification('Mengirim ulang data ke server...', 'info');
             loadHistory();
 
-            let timeLeft = 60;
-            submitBtn.innerText = `Sedang Dikirim... (${timeLeft}s)`;
-            
+            let timeLeft = 45;
             const countdownInterval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft > 0 && isSyncing) {
-                    submitBtn.innerText = `Sedang Dikirim... (${timeLeft}s)`;
+                    submitBtn.innerText = `Mengirim Ulang... (${timeLeft}s)`;
                 } else {
                     clearInterval(countdownInterval);
                 }
@@ -706,13 +710,12 @@
                 submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
 
                 await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                showNotification('Proses Kirim gagal (Lebih dari 1 menit). Harus diulangi!', 'error');
+                showNotification('Pengiriman melebihi batas waktu (timeout). Silakan ulangi!', 'error');
                 loadHistory();
-            }, 60000);
+            }, 45000);
 
             try {
                 let payloadFiles = [];
-
                 if (report.files && report.files.length > 0) {
                     for (let item of report.files) {
                         const b64 = await fileToBase64Payload(item);
@@ -741,23 +744,22 @@
                 clearInterval(countdownInterval);
 
                 const resData = await response.json();
-
                 if (resData.status === 'success') {
                     await window.dbUpdate(updatedReportRef, {
                         files: resData.files || [],
                         syncStatus: 'synced'
                     });
-                    showNotification('Foto berhasil Disimpan Ke sistem 100%!', 'success');
+                    showNotification('Foto berhasil terkirim dan disimpan ke sistem 100%!', 'success');
                 } else {
                     await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                    showNotification('Proses Kirim gagal: Harus diulangi!', 'error');
+                    showNotification('Gagal menyimpan ke server Google Drive!', 'error');
                 }
             } catch (err) {
                 if (isTimedOut) return;
                 clearTimeout(timeoutTimer);
                 clearInterval(countdownInterval);
                 await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                showNotification('Proses gagal/terputus. Harus diulangi!', 'error');
+                showNotification('Koneksi terputus saat pengiriman foto.', 'error');
             } finally {
                 if (!isTimedOut) {
                     isSyncing = false;
@@ -773,16 +775,14 @@
         document.getElementById('distributionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const isOfflineUser = currentUser && (currentUser.name === 'Jimi Kurniawan' || currentUser.name === 'Wiranto Galuh Saputra');
-
             const netState = await checkNetworkSpeed();
-            if (!isOfflineUser && (netState === 'slow' || netState === 'offline')) {
-                showNotification('Internet anda kurang stabil tidak bisa kirim data', 'error');
+            if (netState === 'offline') {
+                showNotification('Perangkat Anda offline. Periksa koneksi internet Anda!', 'error');
                 return;
             }
 
             if (isSyncing) {
-                showNotification('Tunggu Sebentar, proses Kirim sedang berjalan', 'error');
+                showNotification('Proses pengiriman sedang berjalan, mohon tunggu sebentar...', 'error');
                 return;
             }
 
@@ -811,7 +811,7 @@
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerText = "Diproses...";
+            submitBtn.innerText = "Sedang Di Proses...";
             submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             try {
@@ -820,15 +820,17 @@
                 const processFiles = async (fileList, prefix) => {
                     for (let i = 0; i < fileList.length; i++) {
                         const file = fileList[i];
-                        const name = `[${prefix}_${Date.now()}_${i+1}]_${file.name}`;
+                        const cleanName = file.name ? file.name.replace(/[^a-zA-Z0-9_.-]/g, '_') : 'foto.jpg';
+                        const name = `[${prefix}_${Date.now()}_${i+1}]_${cleanName}`;
                         
-                        const compressedBase64 = await compressImage(file, 1200, 1200, 0.7);
+                        // Jalankan kompresi aman
+                        const compressedBase64 = await compressImage(file, 1024, 1024, 0.65);
 
                         tempFiles.push({
                             id: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                             name: name,
                             url: compressedBase64,
-                            bytes: compressedBase64.split(',')[1],
+                            bytes: compressedBase64 ? compressedBase64.split(',')[1] : '',
                             mimeType: 'image/jpeg',
                             isTemp: true
                         });
@@ -888,25 +890,26 @@
                     await window.dbSet(newReportRef, reportPayload);
                 }
 
-                showNotification('Laporan & foto berhasil diproses!', 'success');
+                showNotification('Laporan & foto berhasil disimpan, mengirim ke server...', 'success');
                 document.getElementById('distributionForm').reset();
                 isUserEditingDate = false;
                 updateLiveInputDate();
                 loadHistory();
 
-                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Tersimpan.`;
+                const waMessage = `📢 *LAPORAN DISTRIBUSI MAKAN BERGIZI*\n\n🏫 Instansi: ${institution}\n📅 Tanggal: ${dateString}\n📦 Kirim: ${qtySent} porsi\n↩️ Kembali: ${qtyReturned} porsi\n👤 Pengirim: ${currentUser.name}\n\nStatus: Berhasil Terkirim.`;
                 sendWhatsAppNotification(waMessage);
 
+                // Background sync process
                 (async () => {
                     isSyncing = true;
-                    let timeLeft = 60;
+                    let timeLeft = 45;
                     submitBtn.disabled = true;
-                    submitBtn.innerText = `Tunggu Sebentar... (${timeLeft}s)`;
+                    submitBtn.innerText = `Sedang Di Kirim... (${timeLeft}s)`;
 
                     const countdownInterval = setInterval(() => {
                         timeLeft--;
                         if (timeLeft > 0 && isSyncing) {
-                            submitBtn.innerText = `Tunggu Sebentar... (${timeLeft}s)`;
+                            submitBtn.innerText = `Sedang Di Kirim... (${timeLeft}s)`;
                         } else {
                             clearInterval(countdownInterval);
                         }
@@ -925,9 +928,9 @@
                         submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
 
                         await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                        showNotification('Proses kirim gagal (Lebih dari 1 menit). Harus diulangi!', 'error');
+                        showNotification('Gagal mengunggah (Waktu habis/Timeout). Silakan klik Ulangi di riwayat!', 'error');
                         loadHistory();
-                    }, 60000);
+                    }, 45000);
 
                     try {
                         let payloadFiles = [];
@@ -954,23 +957,22 @@
                         clearInterval(countdownInterval);
 
                         const resData = await response.json();
-
                         if (resData.status === 'success') {
                             await window.dbUpdate(updatedReportRef, {
                                 files: resData.files || [],
                                 syncStatus: 'synced'
                             });
-                            showNotification('Foto & Arsip berhasil Disimpan Ke sistem 100%!', 'success');
+                            showNotification('Foto & Arsip berhasil tersimpan ke sistem 100%!', 'success');
                         } else {
                             await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                            showNotification('Proses Kirim gagal: Harus diulangi!', 'error');
+                            showNotification('Gagal menyimpan arsip di Google Drive server.', 'error');
                         }
                     } catch (err) {
                         if (isTimedOut) return;
                         clearTimeout(timeoutTimer);
                         clearInterval(countdownInterval);
                         await window.dbUpdate(updatedReportRef, { syncStatus: 'failed' });
-                        showNotification('Proses gagal/terputus. Harus diulangi!', 'error');
+                        showNotification('Koneksi terputus saat pengiriman foto ke server.', 'error');
                     } finally {
                         if (!isTimedOut) {
                             isSyncing = false;
@@ -988,7 +990,7 @@
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
                 submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
-                showNotification(err.message || 'Terjadi kesalahan pada sistem', 'error');
+                showNotification(err.message || 'Terjadi kesalahan sistem', 'error');
             }
         });
 
@@ -1019,25 +1021,6 @@
                 }));
 
                 rawGlobalReports = reportsArray;
-
-                const hasSyncing = reportsArray.some(r => r.syncStatus === 'syncing');
-                const submitBtn = document.getElementById('submitBtn');
-
-                if (hasSyncing && !isSyncing) {
-                    isSyncing = true;
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.innerText = "laporan anda sedang dikirim tunggu sebentar";
-                        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-                    }
-                } else if (!hasSyncing && !isSyncing) {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = `<span>🚀</span> Kirim Laporan`;
-                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    }
-                }
-
                 window.allReportsCache = reportsArray;
                 updateAvailableInstitutions();
                 applyFilters();
@@ -1067,9 +1050,9 @@
                 } else if (report.syncStatus === 'offline') {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full font-bold border border-slate-300">📱 Tersimpan</span>`;
                 } else if (report.syncStatus === 'syncing' || (report.files && report.files.some(f => f.isTemp) && report.syncStatus !== 'failed')) {
-                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse">🔄 Sedang Dikirim...</span>`;
+                    syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold border border-amber-300 animate-pulse">🔄 Sedang Mengirim...</span>`;
                 } else if (report.syncStatus === 'failed') {
-                    syncBadge = `<button type="button" onclick="resendReport('${report.firebaseId}')" class="inline-flex items-center gap-1 text-[10px] bg-red-100 text-red-800 hover:bg-red-200 px-2.5 py-1 rounded-full font-bold border border-red-300 transition cursor-pointer shadow-sm active:scale-95">❌ Proses Kirim Gagal (Ulangi)</button>`;
+                    syncBadge = `<button type="button" onclick="resendReport('${report.firebaseId}')" class="inline-flex items-center gap-1 text-[10px] bg-red-100 text-red-800 hover:bg-red-200 px-2.5 py-1 rounded-full font-bold border border-red-300 transition cursor-pointer shadow-sm active:scale-95">❌ Kirim Gagal (Ulangi)</button>`;
                 } else {
                     syncBadge = `<span class="inline-flex items-center gap-1 text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">✓</span>`;
                 }
@@ -1079,7 +1062,7 @@
                     report.files.forEach(f => {
                         const thumbUrl = f.isTemp ? f.url : ("https://lh3.googleusercontent.com/d/" + f.id);
                         filesHtml += `
-                            <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border border-slate-300 cursor-pointer relative group" onclick="openModal('${thumbUrl}', '${f.name}', '${report.institution} (${f.name})', '${f.id}', '${report.firebaseId}')">
+                            <div class="aspect-square rounded-lg overflow-hidden bg-slate-200 border border-slate-300 cursor-pointer relative group" onclick="openModal('${thumbUrl}', '${f.name}', '${report.institution} (${f.name})')">
                                 <img src="${thumbUrl}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23888\' stroke-width=\'2\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5-11 11\'/></svg>';">
                                 ${f.isTemp && report.syncStatus !== 'failed' ? '<span class="absolute bottom-1 right-1 text-[8px] bg-amber-500 text-white font-bold px-1 rounded shadow animate-pulse">Offline</span>' : ''}
                             </div>
@@ -1090,41 +1073,22 @@
                 }
                 filesHtml += '</div>';
 
-                let contentHtml = '';
-                if (isAdmin) {
-                    contentHtml = `
-                        <div>
-                            <div class="flex justify-between items-start mb-1 gap-1">
-                                <h3 class="font-bold text-teal-800 text-sm">${report.institution}</h3>
-                                <div class="flex flex-col items-end gap-1">
-                                    <span class="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-semibold border border-teal-200">${report.date}</span>
-                                    ${syncBadge}
-                                </div>
-                            </div>
-                            <div class="text-xs text-slate-600 grid grid-cols-2 gap-1 mb-2 bg-white p-2 rounded border border-slate-200">
-                                <p>📦 Kirim: <strong class="text-slate-800">${report.qtySent} porsi</strong></p>
-                                <p>↩️ Kembali: <strong class="text-slate-800">${report.qtyReturned} porsi</strong></p>
-                            </div>
-                            ${filesHtml}
-                        </div>
-                    `;
-                } else {
-                    contentHtml = `
-                        <div>
-                            <div class="flex justify-between items-start mb-1 gap-1">
-                                <h3 class="font-bold text-teal-800 text-sm">🏫 ${report.institution}</h3>
-                                <div class="flex flex-col items-end gap-1">
-                                    <span class="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-semibold border border-teal-200">${report.date}</span>
-                                    ${syncBadge}
-                                </div>
-                            </div>
-                            <div class="text-xs text-slate-600 grid grid-cols-2 gap-1 my-2 bg-white p-2.5 rounded border border-slate-200">
-                                <p>📦 Kirim: <strong class="text-slate-800">${report.qtySent} porsi</strong></p>
-                                <p>↩️ Kembali: <strong class="text-slate-800">${report.qtyReturned} porsi</strong></p>
+                let contentHtml = `
+                    <div>
+                        <div class="flex justify-between items-start mb-1 gap-1">
+                            <h3 class="font-bold text-teal-800 text-sm">🏫 ${report.institution}</h3>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-semibold border border-teal-200">${report.date}</span>
+                                ${syncBadge}
                             </div>
                         </div>
-                    `;
-                }
+                        <div class="text-xs text-slate-600 grid grid-cols-2 gap-1 my-2 bg-white p-2.5 rounded border border-slate-200">
+                            <p>📦 Kirim: <strong class="text-slate-800">${report.qtySent} porsi</strong></p>
+                            <p>↩️ Kembali: <strong class="text-slate-800">${report.qtyReturned} porsi</strong></p>
+                        </div>
+                        ${filesHtml}
+                    </div>
+                `;
 
                 let fileIdsArray = report.files ? report.files.map(f => f.id) : [];
                 let fileIdsJson = JSON.stringify(fileIdsArray).replace(/"/g, '&quot;');
@@ -1161,11 +1125,17 @@
             renderGallery(filtered);
         }
 
-        document.getElementById('filterSingleDate').addEventListener('change', function() {
-            this.dataset.userModified = "true";
-            applyFilters();
-        });
-        document.getElementById('filterInstitution').addEventListener('change', applyFilters);
+        const filterDateEl = document.getElementById('filterSingleDate');
+        if (filterDateEl) {
+            filterDateEl.addEventListener('change', function() {
+                this.dataset.userModified = "true";
+                applyFilters();
+            });
+        }
+        const filterInstEl = document.getElementById('filterInstitution');
+        if (filterInstEl) {
+            filterInstEl.addEventListener('change', applyFilters);
+        }
 
         function openModal(url, name, caption) {
             document.getElementById('modalImg').src = url;
